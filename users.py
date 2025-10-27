@@ -45,7 +45,7 @@ def get_db():
 
 @fastapi.post('/signup/')
 def user_create(user: UserCreate, db: Session = Depends(get_db)):
-    if session.query(User.email).filter(User.email == user.email).first():
+    if db.query(User.email).filter(User.email == user.email).first():
         raise HTTPException(status_code=404, detail="user already exists")
     new_user = User(email = user.email, username = user.username, password = user.password)
     db.add(new_user)
@@ -55,9 +55,11 @@ def user_create(user: UserCreate, db: Session = Depends(get_db)):
 
 @fastapi.post('/signin/')
 def user_login(user: UserLogin, db: Session = Depends(get_db)):
-    if not session.query(User).filter(User.email == user.email).first():
+    if not db.query(User).filter(User.email == user.email).first():
         raise HTTPException(status_code=404, detail="user not found!")
-    if not session.query(User.password).filter(User.username == user.username).first() == user.password:
-        raise HTTPException(status_code=404, detail="wrong password!")
-    user_name = session.query(User.username).filter(User.email == user.email).first()
-    return {f"welcome {user_name}!"}
+    passkey = db.query(User.password).filter(User.email == user.email).first()
+    if passkey == (user.password,):
+        user_name = db.query(User.username).filter(User.email == user.email).first()
+        return {f"welcome {user_name}!"}
+    else:
+        raise HTTPException(status_code=404, detail="incorrect password!")
