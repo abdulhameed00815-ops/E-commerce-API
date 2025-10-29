@@ -4,6 +4,7 @@ from sqlalchemy import create_engine, Column, String, Integer
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from pydantic import BaseModel
+from auth_handler import sign_jwt
 
 fastapi = FastAPI()
 
@@ -21,11 +22,10 @@ class User(Base):
 
 
 Base.metadata.create_all(bind=engine)
-    
+
 
 class UserLogin(BaseModel):
     email:str
-    username:str
     password:str
 
 
@@ -50,7 +50,7 @@ def user_create(user: UserCreate, db: Session = Depends(get_db)):
     new_user = User(email = user.email, username = user.username, password = user.password)
     db.add(new_user)
     db.commit()
-    return {"user successfuly created!"}
+    return sign_jwt(user.email)
 
 
 @fastapi.post('/signin/')
