@@ -1,17 +1,24 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Body
 from typing import List, Optional
 from sqlalchemy import create_engine, Column, String, Integer
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from pydantic import BaseModel
 from auth_handler import sign_jwt
+from auth_bearer import JWTBearer
+import bcrypt
 
 fastapi = FastAPI()
 
 engine = create_engine("postgresql://postgres:1234@localhost/users")
+engine1 = create_engine("postgresql://postgres:1234@localhost/products")
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+SessionLocal1 = sessionmaker(autocommit=False, autoflush=False, bind=engine1)
 Base = declarative_base()
 session = SessionLocal()
+session1 = SessionLocal1()
+
 
 class User(Base):
     __tablename__ = "users"
@@ -43,11 +50,20 @@ def get_db():
         db.close()
 
 
+def get_db1():
+    db = SessionLocal1()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
 @fastapi.post('/signup/')
 def user_create(user: UserCreate, db: Session = Depends(get_db)):
-    if db.query(User.email).filter(User.email == user.email).first():
-        raise HTTPException(status_code=404, detail="user already exists")
-    new_user = User(email = user.email, username = user.username, password = user.password)
+    if db.query(User).filter(User.email == user.email).first():
+        raise HTTPException(status_code=400, detail="user already exists")
+    hashed_pw = bcrypt.hashpw(user.password.encode('utf-8'), bcrypt.gensalt())
+    new_user = User(email = user.email, username = user.username, password = hashed_pw.decode('utf-8'))
     db.add(new_user)
     db.commit()
     return sign_jwt(user.email)
@@ -55,11 +71,52 @@ def user_create(user: UserCreate, db: Session = Depends(get_db)):
 
 @fastapi.post('/signin/')
 def user_login(user: UserLogin, db: Session = Depends(get_db)):
+    db_user = db.query(User).filter(User.email == user.email).first()
     if not db.query(User).filter(User.email == user.email).first():
         raise HTTPException(status_code=404, detail="user not found!")
     passkey = db.query(User.password).filter(User.email == user.email).first()
-    if passkey == (user.password,):
-        user_name = db.query(User.username).filter(User.email == user.email).first()
-        return {f"welcome {user_name}!"}
+    if bcrypt.checkpw(user.password.encode('utf-8'), db_user.password.encode('utf-8')):
+            return sign_jwt(user.email)
     else:
-        raise HTTPException(status_code=404, detail="incorrect password!")
+        raise HTTPException(status_code=401, detail="incorrect password!")
+    
+
+class Product(Base):
+    __tablename__ = "products"
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False, unique=True)
+    description = Column(String)
+    price = Column(Integer)    
+
+
+Base.metadata.create_all(bind=engine1)
+
+
+class ProductCreate(BaseModel):
+    name:str
+    description:str
+    price:int
+
+
+class ProductResponse(BaseModel):
+    name:str
+    description:str
+    price:int
+
+@fastapi.post('/addproduct/', dependencies=[Depends(JWTBearer())], tags=["products"])
+def product_create(product: ProductCreate, db: Session = Depends(get_db1)):
+    if db.query(Product).filter(Product.name == product.name).first():
+        raise HTTPException(status_code=404, detail="product already exists!")
+    new_product = Product(name = product.name, description = product.description, price = product.price)
+    db.add(new_product)
+    db.commit()
+    return {"product added!"}
+
+
+@fastapi.get('/displayproducts/{Product.id}', response_model=ProductResponse)
+def display_products(product_id:int, db: Session = Depends(get_db1)):
+    product = db.query(Product).filter(Product.id == product_id).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="product already exists!")
+    return product
+
