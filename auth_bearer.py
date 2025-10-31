@@ -1,14 +1,17 @@
-from fastapi import Request, HTTPException
+from fastapi import Request, Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from auth_handler import decode_jwt
 
 
+#the init method function auto raises an error if something goes wrong (ex: the whole token is missing)
 class JWTBearer(HTTPBearer):
     def __init__(self, auto_error: bool = True):
         super(JWTBearer, self).__init__(auto_error=auto_error)
     
 
+#this function is a long one, it checks for 2 stuff, firstly for the header of the token, if it is not a Bearer then access is denied, and then checks if the token is expired (via the verify_jwt function) then also the access is denied
+#the call method makes the class callable just like a function    
     async def __call_(self, request: Request):
         credentials: HTTPAuthorizationCredentials = await super(JWTBearer, self).__call__(request)
         if credentials:
@@ -31,3 +34,14 @@ class JWTBearer(HTTPBearer):
         if payload:
             isTokenValid = True
         return isTokenValid
+
+
+class IsAdmin():
+    def __init__(self, jwtbearer: JWTBearer = Depends(JWTBearer())):
+        self.jwtbearer = jwtbearer
+    async def __call__(self, request: Request):
+        token = await self.jwtbearer(request)
+        payload = decode_jwt(token)
+        if payload.get("role") != "admin":
+            raise HTTPException(status_code=403, detail="access denied")
+        return payload
