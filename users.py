@@ -33,13 +33,13 @@ Base.metadata.create_all(bind=engine)
 class UserLogin(BaseModel):
     email:str
     password:str
-
+    role:str
 
 class UserCreate(BaseModel):
     email:str
     username:str
     password:str
-
+    role:str
 
 def get_db():
     db = SessionLocal()
@@ -62,11 +62,11 @@ def user_create(user: UserCreate, db: Session = Depends(get_db)):
     if db.query(User).filter(User.email == user.email).first():
         raise HTTPException(status_code=400, detail="user already exists")
     hashed_pw = bcrypt.hashpw(user.password.encode('utf-8'), bcrypt.gensalt())
-    new_user = User(email = user.email, username = user.username, password = hashed_pw.decode('utf-8'))
+    new_user = User(email = user.email, username = user.username, password = hashed_pw.decode('utf-8'), role = user.role)
 #we firstly encode the password given by the user in the create user, and store that encoded thing in a variable (hashed_pw), then when we come to add it to our db we decode it    
     db.add(new_user)
     db.commit()
-    return sign_jwt(user_id=user.id, role=user.role)
+    return sign_jwt(user_id=user.email, role=user.role)
 
 
 @fastapi.post('/signin/')
@@ -77,7 +77,7 @@ def user_login(user: UserLogin, db: Session = Depends(get_db)):
     passkey = db.query(User.password).filter(User.email == user.email).first()
     if bcrypt.checkpw(user.password.encode('utf-8'), db_user.password.encode('utf-8')):
 #we now take the password entered by the user in the sign in process, then we use the checkpw function by bcrypt to see if the encoded version of the user password matches the encoded version of the password in our db        
-        return sign_jwt(user_id=user.id, role=user.role)
+        return sign_jwt(user_id=user.email, role=user.role)
 #we return the encoded token to the user once he signs up or in, this token will be later used to access secured routes
     else:
         raise HTTPException(status_code=401, detail="incorrect password!")
