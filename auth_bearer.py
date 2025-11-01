@@ -36,12 +36,11 @@ class JWTBearer(HTTPBearer):
         return isTokenValid
 
 
-class IsAdmin():
-    def __init__(self, jwtbearer: JWTBearer = Depends(JWTBearer())):
-        self.jwtbearer = jwtbearer
+class IsAdmin(JWTBearer):
     async def __call__(self, request: Request):
-        token = await self.jwtbearer(request)
+        token = await super().__call__(request)
         payload = decode_jwt(token)
-        if payload.get("role") != "admin":
-            raise HTTPException(status_code=403, detail="access denied")
-        return payload
+        if payload.get('role') == "admin":
+            return payload
+        else:
+            print(payload)
