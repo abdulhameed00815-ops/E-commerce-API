@@ -12,7 +12,7 @@ class JWTBearer(HTTPBearer):
 
 #this function is a long one, it checks for 2 stuff, firstly for the header of the token, if it is not a Bearer then access is denied, and then checks if the token is expired (via the verify_jwt function) then also the access is denied
 #the call method makes the class callable just like a function    
-    async def __call_(self, request: Request):
+    async def __call__(self, request: Request):
         credentials: HTTPAuthorizationCredentials = await super(JWTBearer, self).__call__(request)
         if credentials:
             if not credentials.scheme == "Bearer":
@@ -40,7 +40,7 @@ class IsAdmin(JWTBearer):
     async def __call__(self, request: Request):
         token = await super().__call__(request)
         payload = decode_jwt(token)
-        if payload.get('role') == "admin":
-            return payload
+        if payload.get("role") == 'admin':
+            return True 
         else:
-            print(payload)
+            raise HTTPException(status_code=403, detail="access denied bitch") 
