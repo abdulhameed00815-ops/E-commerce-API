@@ -7,6 +7,8 @@ from pydantic import BaseModel
 from auth_handler import sign_jwt
 import bcrypt
 from auth_bearer import JWTBearer, IsAdmin
+from auth_handler import decode_jwt
+
 fastapi = FastAPI()
 
 engine_users = create_engine("postgresql://postgres:1234@localhost/users")
@@ -30,7 +32,6 @@ class User(Base):
     username = Column(String)
     password = Column(String)
     role = Column(String, default="user")
-    cart = relationship('Cart', back_populates='user')
 
 
 Base.metadata.create_all(bind=engine_users)
@@ -105,7 +106,6 @@ class Product(Base):
     name = Column(String, nullable=False, unique=True)
     description = Column(String)
     price = Column(Integer)    
-    cart = relationship('Cart', back_populates='product')
 
 
 Base.metadata.create_all(bind=engine_products)
@@ -145,10 +145,8 @@ def display_products(product_id:int, db: Session = Depends(get_db_products)):
 class Cart(Base):
     __tablename__ = "carts"
     id = Column(Integer, primary_key=True)
-    user_id = Column(String, ForeignKey(User.email, ondelete='cascade'))
-    product_id = Column(Integer, ForeignKey(Product.id, ondelete='cascade'))
-    user = relationship('User', back_populates='cart')
-    product = relationship('Product', back_populates='cart')
+    user_id = Column(String)
+    product_id = Column(Integer)
 
 
 Base.metadata.create_all(bind=engine_carts)
@@ -162,18 +160,36 @@ class GetCart(BaseModel):
     cart_id:int
 
 
+class ViewCart(BaseModel):
+    product_name:str
+
+
+#this function gets the token from the jwtbearer class, then decodes it and extracts the email of the CURRENT user.
+async def get_current_user(request: Request, token: str = Depends(JWTBearer())):
+    payload = decode_jwt(token)
+    if not payload:
+        raise HTTPException(status_code=403, detail="token invalid or expired!")
+    return payload.get('id')
+
+
 @fastapi.post('/addtocart/', dependencies=[Depends(JWTBearer())], tags=["cart"])
-def add_to_cart(product: AddToCart, db_carts: Session = Depends(get_db_carts), db_products: Session = Depends(get_db_products)):
+def add_to_cart(product: AddToCart, db_carts: Session = Depends(get_db_carts), db_products: Session = Depends(get_db_products), email: str = Depends(get_current_user)):
     product_id1 = db_products.query(Product.id).filter(Product.id == product.product_id).scalar()
     if not product_id1:
         raise HTTPException(status_code=404, detail="product not found!")
-    async def __call__(self, request: Request, product: AddToCart, db_carts: Session = Depends(get_db_carts), db_products: Session = Depends(get_db_products)):
-        token = await super().__call__(request)
-        payload = decode_jwt(token)
-        email = payload.get('id')
-        added_product = Cart(user_id = email, product_id = product_id1)
-        db.add(added_product)
-        db.commit()
-        return {"product added to cart successfuly!"}
+    added_product = Cart(user_id = email, product_id = product_id1)
+    db_carts.add(added_product)
+    db_carts.commit()
+    return {"product added to cart successfuly!"}
+        
+
+@fastapi.get('/viewcart/{Cart.id}', dependencies=[Depends(JWTBearer())], tags=["cart"])
+def view_cart(email: str = Depends(get_current_user), db_carts: Session = Depends(get_db_carts), db_products: Session = Depends(get_db_products)):
+    product_ids = [p[0] for p in db_carts.query(Cart.product_id).filter(Cart.user_id == email).all()]
+    if not product_ids:
+        return {"message": "your cart is empty!"}
+    products = db_products.query(Product.name).filter(Product.id.in_(product_ids)).all()
+    product_names = [p[0] for p in products]
+    return {"cart products": product_names}
 
 
