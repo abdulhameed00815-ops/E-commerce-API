@@ -160,9 +160,9 @@ class GetCart(BaseModel):
     cart_id:int
 
 
-class ViewCart(BaseModel):
-    product_name:str
-
+class RemoveProductFromCart(BaseModel):
+    product_id:int
+    
 
 #this function gets the token from the jwtbearer class, then decodes it and extracts the email of the CURRENT user.
 async def get_current_user(request: Request, token: str = Depends(JWTBearer())):
@@ -171,7 +171,7 @@ async def get_current_user(request: Request, token: str = Depends(JWTBearer())):
         raise HTTPException(status_code=403, detail="token invalid or expired!")
     return payload.get('id')
 
-
+#endpoint for adding a product to cart
 @fastapi.post('/addtocart/', dependencies=[Depends(JWTBearer())], tags=["cart"])
 def add_to_cart(product: AddToCart, db_carts: Session = Depends(get_db_carts), db_products: Session = Depends(get_db_products), email: str = Depends(get_current_user)):
     product_id1 = db_products.query(Product.id).filter(Product.id == product.product_id).scalar()
@@ -182,7 +182,7 @@ def add_to_cart(product: AddToCart, db_carts: Session = Depends(get_db_carts), d
     db_carts.commit()
     return {"product added to cart successfuly!"}
         
-
+#endpoint for viewing stuff in cart
 @fastapi.get('/viewcart/{Cart.id}', dependencies=[Depends(JWTBearer())], tags=["cart"])
 def view_cart(email: str = Depends(get_current_user), db_carts: Session = Depends(get_db_carts), db_products: Session = Depends(get_db_products)):
     product_ids = [p[0] for p in db_carts.query(Cart.product_id).filter(Cart.user_id == email).all()]
@@ -193,3 +193,11 @@ def view_cart(email: str = Depends(get_current_user), db_carts: Session = Depend
     return {"cart products": product_names}
 
 
+@fastapi.put('/removeproductfromcart/', dependencies=[Depends(JWTBearer())], tags=["cart"])
+def remove_product(product: RemoveProductFromCart, email: str = Depends(get_current_user), db_carts: Session = Depends(get_db_carts)):
+    desired_product = db_carts.query(Cart).filter(Cart.product_id == product.product_id, Cart.user_id == email).first()
+    if not desired_product:
+        raise HTTPException(status_code=404, detail="product unavailable!")
+    db_carts.delete(desired_product) 
+    db_carts.commit()
+    return {"message": "product removed from cart!"}
