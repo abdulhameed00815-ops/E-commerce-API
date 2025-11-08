@@ -11,6 +11,34 @@ from fastapi_jwt_auth2.exceptions import AuthJWTException
 from decouple import config
 fastapi = FastAPI()
 
+from fastapi.openapi.utils import get_openapi
+
+def custom_openapi():
+    if fastapi.openapi_schema:
+        return fastapi.openapi_schema
+    openapi_schema = get_openapi(
+        title="E-commerce API",
+        version="1.0.0",
+        description="FastAPI with JWT Auth",
+        routes=fastapi.routes,
+    )
+    openapi_schema["components"]["securitySchemes"] = {
+        "BearerAuth": {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT",
+        }
+    }
+    for path in openapi_schema["paths"].values():
+        for method in path.values():
+            method["security"] = [{"BearerAuth": []}]
+
+    fastapi.openapi_schema = openapi_schema
+    return fastapi.openapi_schema
+
+fastapi.openapi = custom_openapi
+
+
 engine_users = create_engine("postgresql://postgres:1234@localhost/users")
 engine_products = create_engine("postgresql://postgres:1234@localhost/products")
 engine_carts = create_engine("postgresql://postgres:1234@localhost/carts")
@@ -211,6 +239,8 @@ class RemoveProductFromCart(BaseModel):
 
 def user_email(Authorize:AuthJWT = Depends()):
     claims = Authorize.get_raw_jwt()
+    if claims == None:
+        raise HTTPException(status_code=403, detail="login first bitch!")
     email = claims.get("email")
     return email
 
