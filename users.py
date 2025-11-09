@@ -13,31 +13,6 @@ fastapi = FastAPI()
 
 from fastapi.openapi.utils import get_openapi
 
-def custom_openapi():
-    if fastapi.openapi_schema:
-        return fastapi.openapi_schema
-    openapi_schema = get_openapi(
-        title="E-commerce API",
-        version="1.0.0",
-        description="FastAPI with JWT Auth",
-        routes=fastapi.routes,
-    )
-    openapi_schema["components"]["securitySchemes"] = {
-        "BearerAuth": {
-            "type": "http",
-            "scheme": "bearer",
-            "bearerFormat": "JWT",
-        }
-    }
-    for path in openapi_schema["paths"].values():
-        for method in path.values():
-            method["security"] = [{"BearerAuth": []}]
-
-    fastapi.openapi_schema = openapi_schema
-    return fastapi.openapi_schema
-
-fastapi.openapi = custom_openapi
-
 
 engine_users = create_engine("postgresql://postgres:1234@localhost/users")
 engine_products = create_engine("postgresql://postgres:1234@localhost/products")
@@ -151,7 +126,7 @@ def user_login(user: UserLogin, db: Session = Depends(get_db_users), Authorize: 
     else:
         raise HTTPException(status_code=401, detail="incorrect password!")
     
-
+#requires a token of type "refresh", if handed to it properly, you ll get a brand new fresh access token everytime
 @fastapi.post('/refresh/')
 def refresh(Authorize: AuthJWT = Depends()):
     Authorize.jwt_refresh_token_required()
