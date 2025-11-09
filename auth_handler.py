@@ -17,7 +17,7 @@ def token_response(token: str):
 
 
 #this function creates the token, then uses the token_response function to return it to the user (usually after signing up or in)
-def sign_jwt(user_id: str) -> Dict[str, str]:
+def sign_jwt(user_id: str, role:str) -> Dict[str, str]:
     payload = {
         "id": user_id,
         "role": role, 

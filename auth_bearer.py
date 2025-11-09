@@ -35,7 +35,7 @@ class JWTBearer(HTTPBearer):
             isTokenValid = True
         return isTokenValid
 
-
+#this function gets the token from the jwtbearer class, then it decodes it and checks if the role inside the payload is admin, it is used as a dependency to secure routes meant only for admins.
 class IsAdmin(JWTBearer):
     async def __call__(self, request: Request):
         token = await super().__call__(request)
