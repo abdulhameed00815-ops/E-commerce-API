@@ -180,13 +180,13 @@ def product_create(product: ProductCreate, db: Session = Depends(get_db_products
     return {"product added!"}
 
 
-@fastapi.get('/displayproducts/{Product.id}', response_model=ProductResponse, tags=["products"])
-def display_products(product_id:int, db: Session = Depends(get_db_products), Authorize: AuthJWT = Depends()):
-    Authorize.jwt_required()
-    product = db.query(Product).filter(Product.id == product_id).first()
-    if not product:
-        raise HTTPException(status_code=404, detail="product already exists!")
-    return product
+@fastapi.get('/searchproducts/{Product.name}', response model=ProductResponse, tags=["products"])
+def search_products(product_name: str, db: Session = Depends(get_db_products), Authorize: AuthJWT = Depends()):
+    Authorize.Jwt_required()
+    product_found = db.query(Product).filter(Product.name = product_name).first()
+    if not product_found:
+        raise HTTPException(status_code=404, detail="product not found bitch")
+    return product_found
 #the post and get methods for the products are secured routes, i ll now make the post method only accessible by admin (dk how but will get it
 
 
