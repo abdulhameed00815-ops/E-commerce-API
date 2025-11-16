@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+        <head>
+                <title>get text</title>
+        </head>
+        <body>
+                <button id="getProducts">Get products</button>
+                <div id="output"></div>
+        </body>
+        <script>
+		document.getElementById('getProducts').addEventListener("click", getProducts)
+
+		function getProducts(){
+                        fetch('http://127.0.0.1:8000/displayproducts/').then(function(res){
+                                return res.json();
+                        })
+                        .then(function(data){
+                                let output = '<h2>Products</h2>';
+                                data.forEach(function(product){
+                                        output += `
+                                        <ul>
+                                                <li>NAME: ${product.name}</li>
+                                                <li>DESCRIPTION: ${product.description}</li>
+                                                <li>Price: ${product.price}</li>
+                                        </ul>
+                                        `;
+                                });
+                                document.getElementById('output').innerHTML = output;
+                        })
+                }
+
+
+
+
+
+        </script>
+</html>
+	
