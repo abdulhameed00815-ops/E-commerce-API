@@ -9,9 +9,17 @@ from fastapi.responses import JSONResponse
 from fastapi_jwt_auth2 import AuthJWT
 from fastapi_jwt_auth2.exceptions import AuthJWTException
 from decouple import config
+from fastapi.middleware.cors import CORSMiddleware
+
 fastapi = FastAPI()
 
 from fastapi.openapi.utils import get_openapi
+
+origins = [
+        "http://127.0.0.1:5500"
+]
+
+fastapi.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=True, allow_methods=["*"], allow_headers=["*"],)
 
 
 engine_users = create_engine("postgresql://postgres:1234@localhost/users")
@@ -166,12 +174,14 @@ def user_role(Authorize:AuthJWT = Depends()):
     return role
 
 
+@fastapi.get('/displayproducts/')
+def display_products(db: Session = Depends(get_db_products)):
+    products = db.query(Product).all()
+    return products
+
+
 @fastapi.post('/addproduct/', tags=["products"])
-def product_create(product: ProductCreate, db: Session = Depends(get_db_products), Authorize: AuthJWT = Depends(), role: str = Depends(user_role)):
-    if role == "admin":
-        Authorize.jwt_required()
-    else:
-        raise HTTPException(status_code=403, detail="access denied bitch!")
+def product_create(product: ProductCreate, db: Session = Depends(get_db_products)):
     if db.query(Product).filter(Product.name == product.name).first():
         raise HTTPException(status_code=404, detail="product already exists!")
     new_product = Product(name = product.name, description = product.description, price = product.price)
@@ -180,10 +190,10 @@ def product_create(product: ProductCreate, db: Session = Depends(get_db_products
     return {"product added!"}
 
 
-@fastapi.get('/searchproducts/{Product.name}', response model=ProductResponse, tags=["products"])
+@fastapi.get('/searchproducts/{Product.name}', response_model=ProductResponse, tags=["products"])
 def search_products(product_name: str, db: Session = Depends(get_db_products), Authorize: AuthJWT = Depends()):
     Authorize.Jwt_required()
-    product_found = db.query(Product).filter(Product.name = product_name).first()
+    product_found = db.query(Product).filter(Product.name == product_name).first()
     if not product_found:
         raise HTTPException(status_code=404, detail="product not found bitch")
     return product_found
