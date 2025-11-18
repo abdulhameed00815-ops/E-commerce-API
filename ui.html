@@ -1,38 +1,45 @@
 <!DOCTYPE html>
 <html>
         <head>
-                <title>get text</title>
+                <title>sign up</title>
         </head>
         <body>
-                <button id="getProducts">Get products</button>
-                <div id="output"></div>
+		<form id="signUp">
+			<div>
+				<input type="text" id="email" placeholder="Email">
+			</div>
+
+			<div>
+				<input type="text" id="username" placeholder="Username">
+			</div>
+
+			<div>
+				<input type="text" id="password" placeholder="Password">
+			</div>
+
+			<input type="submit" value="sign up">
+		</form>
         </body>
         <script>
-		document.getElementById('getProducts').addEventListener("click", getProducts)
+		document.getElementById('signUp').addEventListener("submit", signUp)
 
-		function getProducts(){
-                        fetch('http://127.0.0.1:8000/displayproducts/').then(function(res){
-                                return res.json();
-                        })
-                        .then(function(data){
-                                let output = '<h2>Products</h2>';
-                                data.forEach(function(product){
-                                        output += `
-                                        <ul>
-                                                <li>NAME: ${product.name}</li>
-                                                <li>DESCRIPTION: ${product.description}</li>
-                                                <li>Price: ${product.price}</li>
-                                        </ul>
-                                        `;
-                                });
-                                document.getElementById('output').innerHTML = output;
-                        })
-                }
-
-
-
-
-
+		function signUp(e) {
+			e.preventDefault();
+			let email = document.getElementById("email").value;
+			let username = document.getElementById("username").value;
+			let password = document.getElementById("password").value;
+			
+			fetch("http://127.0.0.1:8000/signup", {
+				method: 'post',
+				headers: {
+					'accept': 'application/json, text/plain, */*',
+					'content-type': 'application/json'
+				},
+				body:JSON.stringify({email:email, username:username, password:password})
+			})
+			.then((res) => res.json())
+			.then((data) => console.log(data)) 
+		}
         </script>
 </html>
 	
