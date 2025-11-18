@@ -16,7 +16,7 @@ fastapi = FastAPI()
 from fastapi.openapi.utils import get_openapi
 
 origins = [
-        "http://127.0.0.1:5500"
+        "http://localhost:5500"
 ]
 
 fastapi.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=True, allow_methods=["*"], allow_headers=["*"],)
@@ -105,15 +105,16 @@ def get_db_carts():
 def user_create(user: UserCreate, db: Session = Depends(get_db_users), Authorize: AuthJWT = Depends()):
     if db.query(User).filter(User.email == user.email).first():
         raise HTTPException(status_code=400, detail="user already exists")
-    user_id = db.query(User.id).filter(User.email == user.email).scalar()
     hashed_pw = bcrypt.hashpw(user.password.encode('utf-8'), bcrypt.gensalt())
     new_user = User(email = user.email, username = user.username, password = hashed_pw.decode('utf-8'))
 #we firstly encode the password given by the user in the create user, and store that encoded thing in a variable (hashed_pw), then when we come to add it to our db we decode it    
     db.add(new_user)
     db.commit()
+    email1 = user.email
+    user_id = db.query(User.id).filter(User.email == user.email).scalar()
     role1 = db.query(User.role).filter(User.email == user.email).first() 
-    access_token = Authorize.create_access_token(subject=user_id, user_claims={"email": user.email, "role": role1})
-    refresh_token = Authorize.create_refresh_token(subject=user_id, user_claims={"email": user.email, "role": role1})
+    access_token = Authorize.create_access_token(subject=user_id, user_claims={"email": email1, "role": role1})
+    refresh_token = Authorize.create_refresh_token(subject=user_id, user_claims={"email": email1, "role": role1})
     return {"access_token": access_token, "refresh_token": refresh_token}
 
 @fastapi.post('/signin/')
