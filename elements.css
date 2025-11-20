@@ -1,0 +1,28 @@
+.container{
+	margin:20%;
+}
+
+.form .form-group{
+	padding:10px;
+}
+
+.form .button{
+	margin:10px;
+	background:black;
+	color:white;
+	border-radius:10px;
+}
+
+.form .title{
+	margin:10px;
+	margin-bottom:20px;
+}
+
+.form input[type="text"]{
+	width:80%;
+	border-radius:10px;
+}
+
+.form input{
+	padding:10px;
+}
