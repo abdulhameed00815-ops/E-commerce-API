@@ -112,7 +112,7 @@ def user_create(user: UserCreate, db: Session = Depends(get_db_users), Authorize
     db.commit()
     email1 = user.email
     user_id = db.query(User.id).filter(User.email == user.email).scalar()
-    role1 = db.query(User.role).filter(User.email == user.email).first() 
+    role1 = db.query(User.role).filter(User.email == user.email).scalar() 
     access_token = Authorize.create_access_token(subject=user_id, user_claims={"email": email1, "role": role1})
     refresh_token = Authorize.create_refresh_token(subject=user_id, user_claims={"email": email1, "role": role1})
     return {"access_token": access_token, "refresh_token": refresh_token}
@@ -122,10 +122,10 @@ def user_login(user: UserLogin, db: Session = Depends(get_db_users), Authorize: 
     db_user = db.query(User).filter(User.email == user.email).first()
     if not db.query(User).filter(User.email == user.email).first():
         raise HTTPException(status_code=404, detail="user not found!")
-    user_id = db.query(User.id).filter(User.email == user.email).scalar()
     passkey = db.query(User.password).filter(User.email == user.email).first()
     if bcrypt.checkpw(user.password.encode('utf-8'), db_user.password.encode('utf-8')):
 #we now take the password entered by the user in the sign in process, then we use the checkpw function by bcrypt to see if the encoded version of the user password matches the encoded version of the password in our db        
+        user_id = db.query(User.id).filter(User.email == user.email).scalar()
         role1 = db.query(User.role).filter(User.email == user.email).scalar() 
         role1 = str(role1).strip()
         access_token = Authorize.create_access_token(subject=user_id, user_claims={"email": user.email, "role": role1})
