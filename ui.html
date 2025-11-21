@@ -2,12 +2,12 @@
 <html>
         <head>
                 <title>sign up</title>
-		<link rel="stylesheet" type="text/css" href="elements.css">
+		<link rel="stylesheet" type="text/css" href="elements.css?v=123">
         </head>
         <body>
 		<div class="container">
 		<form id="signUp" class="form">
-			<h1 class="title">Sign up</h1>
+			<h2 class="title">Create an account</h2>
 			<div class="form-group">
 				<input type="text" id="email" placeholder="Email">
 			</div>
@@ -43,7 +43,8 @@
 			})
 			.then((res) => res.json())
 			.then((data) => {
-			localStorage.setItems("token", data.access_token);
+			localStorage.setItem("access_token", data.access_token);
+			localStorage.setItem("refresh_token", data.refresh_token);
 			}) 
 		}
         </script>

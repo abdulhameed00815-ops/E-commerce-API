@@ -1,5 +1,17 @@
+body{
+	margin:0;
+	padding:0;
+	background-image:url('background.jpg');
+	background-size:cover;
+}
+
 .container{
-	margin:20%;
+	margin:10% 20%;
+	border: 2px black solid;
+	border-radius:20px;
+	padding:20px;
+	background-image:url('blur4.png');
+	background-size:cover;
 }
 
 .form .form-group{
@@ -10,19 +22,23 @@
 	margin:10px;
 	background:black;
 	color:white;
-	border-radius:10px;
 }
 
 .form .title{
 	margin:10px;
 	margin-bottom:20px;
+	font-family:Arial;
+	color:black;
+	font-weight:bold;
 }
 
 .form input[type="text"]{
-	width:80%;
-	border-radius:10px;
+	width:90%;
+	font-family:Arial;
+	border:1px black solid;
 }
 
 .form input{
 	padding:10px;
 }
+
