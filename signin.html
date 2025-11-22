@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+        <head>
+                <title>sign in</title>
+                <link rel="stylesheet" type="text/css" href="elements.css?v=123">
+        </head>
+        <body>
+                <div class="container">
+                <form id="signUp" class="form">
+                        <h2 class="title">Welcome, lets get you signed in.</h2>
+                        <div class="form-group">
+                                <input type="text" id="email" placeholder="Email">
+                        </div>
+
+                        <div class="form-group">
+                                <input type="text" id="password" placeholder="Password">
+                        </div>
+
+                        <a href="">
+                                <input type="submit" value="sign in" class="button">
+                        </a>
+                </form>
+                </div>
+        </body>
+        <script>
+                document.getElementById('signUp').addEventListener("submit", signIn)
+//so, we asign a signup function to the button, this func takes the information entered in the form inputs and makes a post request to my api, specifically by fetching the url of my signup route, declaring a post method with headers, then sending the data through the (body) thing, firstly turning it into json,
+                function signIn(e) {
+                        e.preventDefault();
+                        let email = document.getElementById("email").value;
+                        let password = document.getElementById("password").value;
+                        
+                        fetch("http://127.0.0.1:8000/signin", {
+                                method: 'post',
+                                headers: {
+                                        'accept': 'application/json, text/plain, */*',
+                                        'content-type': 'application/json'
+                                },
+                                body:JSON.stringify({email:email, password:password})
+                        })
+                        .then((res) => res.json())
+                        .then((data) => {
+                        localStorage.setItem("access_token", data.access_token);
+                        localStorage.setItem("refresh_token", data.refresh_token);
+                        }) 
+                }
+        </script>
+</html>
+
