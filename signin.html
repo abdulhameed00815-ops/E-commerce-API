@@ -7,7 +7,8 @@
         <body>
                 <div class="container">
                 <form id="signUp" class="form">
-                        <h2 class="title">Welcome, lets get you signed in.</h2>
+                        <h2 class="title">Welcome, lets get you signed in</h2>
+			<h3 id="output"><h3>
                         <div class="form-group">
                                 <input type="text" id="email" placeholder="Email">
                         </div>
@@ -15,34 +16,42 @@
                         <div class="form-group">
                                 <input type="text" id="password" placeholder="Password">
                         </div>
-
-                        <a href="">
-                                <input type="submit" value="sign in" class="button">
-                        </a>
+				
+			<input id="post" type="submit" value="Sign in" class="button">
                 </form>
                 </div>
         </body>
         <script>
                 document.getElementById('signUp').addEventListener("submit", signIn)
 //so, we asign a signup function to the button, this func takes the information entered in the form inputs and makes a post request to my api, specifically by fetching the url of my signup route, declaring a post method with headers, then sending the data through the (body) thing, firstly turning it into json,
-                function signIn(e) {
+		   function signIn(e) {
                         e.preventDefault();
                         let email = document.getElementById("email").value;
                         let password = document.getElementById("password").value;
                         
-                        fetch("http://127.0.0.1:8000/signin", {
+                        const response = fetch("http://127.0.0.1:8000/signin", {
                                 method: 'post',
                                 headers: {
                                         'accept': 'application/json, text/plain, */*',
                                         'content-type': 'application/json'
                                 },
                                 body:JSON.stringify({email:email, password:password})
+                        }).then(res => {
+                                return res.json().then(data => ({ status: res.status, data: data }));
                         })
-                        .then((res) => res.json())
-                        .then((data) => {
-                        localStorage.setItem("access_token", data.access_token);
-                        localStorage.setItem("refresh_token", data.refresh_token);
-                        }) 
+                        .then(({ status, data }) => {
+                                if (status === 200) {
+                                        localStorage.setItem("access_token", data.access_token);
+                                        localStorage.setItem("refresh_token", data.refresh_token);
+                                        window.location.assign('http://localhost:5500/homepage.html');
+                                } else {
+    					window.location.reload()
+                                        const output = document.getElementById('output');
+                                        output.innerHTML = data.detail;
+                                        setTimeout(() => output.remove(), 5000);
+                                }
+                        });
+
                 }
         </script>
 </html>
