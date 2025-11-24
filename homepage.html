@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+        <head>
+                <title>homepage</title>
+                <link rel="stylesheet" type="text/css" href="elements.css?v=123">
+        </head>
+        <body>
+		<div class="top-panel">
+		<h1>welcome</h1>
+		<h2 id='output'></h2>
+		<form id="search-bar">
+			<div class="form-group1">
+				<input type="text" placeholder="Search products" id="searched-product">
+			</div>
+
+			<input type="submit" class="button" id="search-button" value="Search">
+		</form>
+		</div>
+	</body>
+	<script>
+		document.getElementById('search-button').addEventListener('click', searchProduct)
+
+   		function searchProduct(e) {
+                        e.preventDefault();
+                        let product = document.getElementById("searched-product").value;
+			const response = fetch("http://127.0.0.1:8000/searchproducts/{Product.name}", { method: 'post',
+                                headers: {
+                                        'accept': 'application/json, text/plain, */*',
+                                        'content-type': 'application/json',
+					'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                                },
+                                body:JSON.stringify({product:product})
+                        }).then(res => {
+				return res.json().then(data => ({ status: res.status, data: data }));
+                        })
+			.then(({ status, data }) => {
+                         	if (status === 200) {
+					const output = document.getElementById('output');
+					data.forEach(function(product){
+					output.innerHTML = `
+						<ul>
+							<li>${product.name}</li>
+							<li>price: ${product.price}</li>	
+						</ul>
+						`;
+					});
+                                } else {
+                                        const output = document.getElementById('output');
+                                        output.innerHTML = data.detail;
+                                        setTimeout(() => output.remove(), 5000);
+                                }
+                        });
+
+                }
+
+	</script>
+</html>
+
