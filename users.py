@@ -196,8 +196,9 @@ def product_create(product: ProductCreate, db: Session = Depends(get_db_products
     return {"product added!"}
 
 
-@fastapi.get('/searchproducts/{Product.name}', response_model=ProductResponse, tags=["products"])
-def search_products(product_name: str, db: Session = Depends(get_db_products)):
+@fastapi.get('/searchproducts/{product_name}', response_model=ProductResponse)
+def search_products(product_name: str, db: Session = Depends(get_db_products), Authorize: AuthJWT = Depends()):
+    Authorize.jwt_required() 
     product_found = db.query(Product).filter(Product.name == product_name).first()
     if not product_found:
         raise HTTPException(status_code=404, detail="product not found bitch")
