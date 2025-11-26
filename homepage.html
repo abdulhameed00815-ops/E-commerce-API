@@ -18,40 +18,39 @@
 		</div>
 	</body>
 	<script>
-		document.getElementById('search-button').addEventListener('click', searchProduct)
-
-   		function searchProduct(e) {
-                        e.preventDefault();
-                        let product = document.getElementById("searched-product").value;
-			const response = fetch("http://127.0.0.1:8000/searchproducts/{Product.name}", { method: 'post',
-                                headers: {
-                                        'accept': 'application/json, text/plain, */*',
-                                        'content-type': 'application/json',
-					'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-                                },
-                                body:JSON.stringify({product:product})
-                        }).then(res => {
-				return res.json().then(data => ({ status: res.status, data: data }));
+		document.getElementById('search-button').addEventListener('click', searchProduct);
+		
+		function searchProduct(e){
+			e.preventDefault()
+			const product = document.getElementById('searched-product').value;	
+			const token = localStorage.getItem("access_token");
+			const output = document.getElementById('output');
+			fetch(`http://127.0.0.1:8000/searchproducts/${product}`, {
+				method: 'GET',
+				headers: {
+					"Authorization": `Bearer ${token}`
+				}
+			})
+			.then(res => {
+                                return res.json().then(data => ({ status: res.status, data: data }));
                         })
-			.then(({ status, data }) => {
-                         	if (status === 200) {
-					const output = document.getElementById('output');
-					data.forEach(function(product){
+                        .then(({ status, data }) => {
+                                if (status === 200) {
 					output.innerHTML = `
 						<ul>
-							<li>${product.name}</li>
-							<li>price: ${product.price}</li>	
+							<li>${data.name}</li>
+							<li>Price: ${data.price}</li>
 						</ul>
-						`;
-					});
-                                } else {
-                                        const output = document.getElementById('output');
-                                        output.innerHTML = data.detail;
-                                        setTimeout(() => output.remove(), 5000);
-                                }
-                        });
 
-                }
+					`;
+				} else {
+ 					window.location.reload()
+					output.innerHTML = data.detail;
+                                        setTimeout(() => output.remove(), 5000);
+
+				}
+			});
+		}
 
 	</script>
 </html>
