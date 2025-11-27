@@ -5,6 +5,10 @@ body{
 	background-size:cover;
 }
 
+ul{
+	list-style-type:none;
+}
+
 a{
 	display:inline-block;
 	text-decoration:none;
@@ -57,4 +61,29 @@ a{
 	margin-left:50px;
 	color:red;
 	font-family:Arial;
+}
+
+.product{
+	border: 2px black solid;
+	border-radius:10px;
+	padding:none;
+	margin:10px;
+	margin: 100px 200px;
+	display:flex;
+	justify-content:flex-start;
+	background-color:white;
+}
+
+.product ul{
+	margin-top:70px;
+	color:black;
+	font-family:Arial;
+}
+
+.productImage{
+	margin:10px 0px 10px 10px;
+	width:155px;
+	height:350px;
+	background-image:url('milk2.jpg');
+	background-size:cover;
 }
