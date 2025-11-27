@@ -7,7 +7,6 @@
         <body>
 		<div class="top-panel">
 		<h1>welcome</h1>
-		<h2 id='output'></h2>
 		<form id="search-bar">
 			<div class="form-group1">
 				<input type="text" placeholder="Search products" id="searched-product">
@@ -15,6 +14,10 @@
 
 			<input type="submit" class="button" id="search-button" value="Search">
 		</form>
+		</div>
+		<div id="productDiv">
+			<div id="product-image"></div>
+		<h2 id='output'></h2>
 		</div>
 	</body>
 	<script>
@@ -36,6 +39,10 @@
                         })
                         .then(({ status, data }) => {
                                 if (status === 200) {
+					const productImage = document.getElementById('product-image');
+					productImage.classList.add('productImage');
+					const productDiv = document.getElementById('productDiv');
+					productDiv.classList.add('product');
 					output.innerHTML = `
 						<ul>
 							<li>${data.name}</li>
