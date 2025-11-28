@@ -217,7 +217,7 @@ Base.metadata.create_all(bind=engine_carts)
 
 
 class AddToCart(BaseModel):
-    product_id:int
+    product_name:str
 
 
 class GetCart(BaseModel):
@@ -237,16 +237,16 @@ def user_email(Authorize:AuthJWT = Depends()):
 
 
 #endpoint for adding a product to cart
-@fastapi.post('/addtocart/', tags=["cart"])
+@fastapi.post('/addtocart/')
 def add_to_cart(product: AddToCart, db_carts: Session = Depends(get_db_carts), db_products: Session = Depends(get_db_products), email: str = Depends(user_email), Authorize: AuthJWT = Depends()):
     Authorize.jwt_required() 
-    product_id1 = db_products.query(Product.id).filter(Product.id == product.product_id).scalar()
+    product_id1 = db_products.query(Product.id).filter(Product.name == product.product_name).scalar()
     if not product_id1:
         raise HTTPException(status_code=404, detail="product not found!")
     added_product = Cart(user_id = email, product_id = product_id1)
     db_carts.add(added_product)
     db_carts.commit()
-    return {"product added to cart successfuly!"}
+    return {"message": "product added to cart successfuly!"}
         
 #endpoint for viewing stuff in cart
 @fastapi.get('/viewcart/{Cart.id}', tags=["cart"])
