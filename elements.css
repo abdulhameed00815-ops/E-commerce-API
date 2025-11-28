@@ -1,8 +1,13 @@
 body{
 	margin:0;
 	padding:0;
-	background-image:url('background7.jpg');
+	background-image:url('/pictures/background7.jpg');
 	background-size:cover;
+}
+
+* {
+	margin:0;
+	padding:0;
 }
 
 ul{
@@ -25,7 +30,7 @@ a{
 	border: 2px black solid;
 	border-radius:20px;
 	padding:20px;
-	background-image:url('blur4.png');
+	background-image:url('/pictures/blur7.png');
 	background-size:cover;
 }
 
@@ -84,6 +89,45 @@ a{
 	margin:10px 0px 10px 10px;
 	width:155px;
 	height:350px;
-	background-image:url('milk2.jpg');
+	background-image:url('/pictures/milk2.jpg');
 	background-size:cover;
+}
+
+.buttonCart{
+	margin:10px;
+	background:black;
+	color:white;
+}
+
+.top-panel{
+	background-color:coral;
+	display:flex;
+	justify-content:center;
+	align-items:center;
+	padding:20px;
+}
+
+.top-panel form input[type="text"]{
+	width:90%;
+	font-family:Arial;
+	border:1px black solid;
+	margin-bottom:7px;
+	width:500px;
+	padding:10px;
+}
+
+.top-panel form input{
+	margin-left:50px;
+	border-radius:5px;
+}
+
+.top-panel form input[type="submit"]{
+	padding:5px;
+	background-color:black;
+	color:white;
+}
+
+.top-panel h1{
+	font-family:Arial;
+	color:white;
 }
