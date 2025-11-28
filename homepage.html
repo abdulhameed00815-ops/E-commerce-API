@@ -6,13 +6,13 @@
         </head>
         <body>
 		<div class="top-panel">
-		<h1>welcome</h1>
+		<h1>Lamazon</h1>
 		<form id="search-bar">
 			<div class="form-group1">
 				<input type="text" placeholder="Search products" id="searched-product">
 			</div>
 
-			<input type="submit" class="button" id="search-button" value="Search">
+			<input type="submit" class="button" id="search-button" value="Search Lamazon">
 		</form>
 		</div>
 		<div id="productDiv">
@@ -48,8 +48,42 @@
 							<li>${data.name}</li>
 							<li>Price: ${data.price}</li>
 						</ul>
+						<button id="cart-button" class="buttonCart">Add to cart</button>
+						<h3 id="cart-output"></h3>
 
 					`;
+							
+					document.getElementById('cart-button').addEventListener('click', AddToCart);
+
+					function AddToCart(e){
+						e.preventDefault();
+						const product = document.getElementById('searched-product').value;	
+						fetch('http://127.0.0.1:8000/addtocart/', { 
+							method: 'POST',
+							headers: {
+								"Authorization": `Bearer ${token}`,
+								"Accept": 'application/json, text/plain, */*',
+								"Content-type": 'application/json'
+							},
+							body:JSON.stringify({product_name:product})
+						})
+						.then(res => {
+							return res.json().then(data => ({ status: res.status, data: data }));
+						})
+						.then(({ status, data }) => {
+							if (status === 200) {
+								const output = document.getElementById('cart-output');
+								output.classList.add('output');
+								output.innerHTML = data.message;
+								setTimeout(() => output.remove(), 3000);
+							} else {
+								window.location.reload()
+								output.innerHTML = data.detail;
+								setTimeout(() => output.remove(), 5000);
+
+							}
+						});
+					};
 				} else {
  					window.location.reload()
 					output.innerHTML = data.detail;
