@@ -49,6 +49,7 @@
 							<li>Price: ${data.price}</li>
 						</ul>
 						<button id="cart-button" class="buttonCart">Add to cart</button>
+						<button id="checkout-button" class="buttonChechout">Checkout</button>
 						<h3 id="cart-output"></h3>
 
 					`;
@@ -83,6 +84,13 @@
 
 							}
 						});
+					};
+
+					document.getElementById('checkout-button').addEventListener('click', checkout);
+
+					function checkout(e){
+						e.preventDefault();
+						window.location.assign('http://localhost:5500/checkout.html');
 					};
 				} else {
  					window.location.reload()
