@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, Depends, Body, Request 
+from fastapi.responses import JSONResponse
 from typing import List, Optional
 from sqlalchemy import create_engine, Column, String, Integer, ForeignKey 
 from sqlalchemy.ext.declarative import declarative_base
@@ -11,6 +12,7 @@ from fastapi_jwt_auth2.exceptions import AuthJWTException
 from decouple import config
 from fastapi.middleware.cors import CORSMiddleware
 import re
+import stripe
 
 email_regex = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
 
@@ -51,7 +53,19 @@ class User(Base):
 Base.metadata.create_all(bind=engine_users)
 JWT_SECRET = config("secret")
 JWT_ALGORITHM = config("algorithm")
+stripe_secret_key = config("stripeSecretKey")
 
+
+stripe.api_key = stripe_secret_key
+
+@fastapi.get('/secret')
+def secret():
+    intent = stripe.PaymentIntent.create(
+        amount=69,
+        currency="usd",
+        automatic_payment_methods={"enabled": True},
+    )
+    return JSONResponse(client_secret=intent.client_secret)
 
 class Settings(BaseModel):
     authjwt_secret_key: str = JWT_SECRET
