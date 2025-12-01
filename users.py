@@ -1,5 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends, Body, Request 
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, HTTPException, Depends, Body, Request, Response 
 from typing import List, Optional
 from sqlalchemy import create_engine, Column, String, Integer, ForeignKey 
 from sqlalchemy.ext.declarative import declarative_base
@@ -61,11 +60,11 @@ stripe.api_key = stripe_secret_key
 @fastapi.get('/secret')
 def secret():
     intent = stripe.PaymentIntent.create(
-        amount=69,
+        amount=6900,
         currency="usd",
         automatic_payment_methods={"enabled": True},
     )
-    return JSONResponse(client_secret=intent.client_secret)
+    return {"client_secret": intent.client_secret}
 
 class Settings(BaseModel):
     authjwt_secret_key: str = JWT_SECRET
