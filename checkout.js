@@ -6,12 +6,12 @@ const stripe = Stripe('pk_test_51SQPxa06yHxJPVTJ64OspbHQVl7JGgVM8Jn0Zn4KrFykmGMv
 
 	const options = {
 	  clientSecret: clientSecret,
+	  appearance: { theme: 'stripe' }
 	};
 	
 	const elements = stripe.elements(options);
 
-	const paymentElementOptions = { layout: 'accordion'};
-	const paymentElement = elements.create('payment', paymentElementOptions);
+	const paymentElement = elements.create('payment', { layout: 'accordion' });
 	paymentElement.mount('#payment-element');
 
 	const form = document.getElementById('payment-form');
