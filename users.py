@@ -57,15 +57,6 @@ stripe_secret_key = config("stripeSecretKey")
 
 stripe.api_key = stripe_secret_key
 
-@fastapi.get('/secret')
-def secret():
-    intent = stripe.PaymentIntent.create(
-        amount=6900,
-        currency="usd",
-        automatic_payment_methods={"enabled": True},
-    )
-    return {"client_secret": intent.client_secret}
-
 class Settings(BaseModel):
     authjwt_secret_key: str = JWT_SECRET
 
@@ -259,18 +250,29 @@ def add_to_cart(product: AddToCart, db_carts: Session = Depends(get_db_carts), d
     added_product = Cart(user_id = email, product_id = product_id1)
     db_carts.add(added_product)
     db_carts.commit()
-    return {"message": "product added to cart successfuly!"}
+    cart_id = db_carts.query(Cart.id).filter(Cart.user_id = email).scalar()
+    return {
+            "message": "product added to cart successfuly!",
+            "cart_id": cart_id
+    }
         
 #endpoint for viewing stuff in cart
-@fastapi.get('/viewcart/{Cart.id}', tags=["cart"])
+@fastapi.get('/viewcart/{Cart.id}')
 def view_cart(email: str = Depends(user_email), db_carts: Session = Depends(get_db_carts), db_products: Session = Depends(get_db_products), Authorize: AuthJWT = Depends()):
     Authorize.jwt_required() 
     product_ids = [p[0] for p in db_carts.query(Cart.product_id).filter(Cart.user_id == email).all()]
     if not product_ids:
         return {"message": "your cart is empty!"}
-    products = db_products.query(Product.name).filter(Product.id.in_(product_ids)).all()
-    product_names = [p[0] for p in products]
-    return {"cart products": product_names}
+    products = db_products.query(Product).filter(Product.id.in_(product_ids)).all()
+    output = [
+                {
+                "id": p.id,
+                "name": p.name,
+                "price": p.price
+                }
+                for p in products
+            ]
+    return {"cart_products": output}
 
 
 @fastapi.put('/removeproductfromcart/', tags=["cart"])
@@ -282,3 +284,5 @@ def remove_product(product: RemoveProductFromCart, email: str = Depends(user_ema
     db_carts.delete(desired_product) 
     db_carts.commit()
     return {"message": "product removed from cart!"}
+
+
