@@ -1,37 +1,37 @@
-const stripe = Stripe('pk_test_51SQPxa06yHxJPVTJ64OspbHQVl7JGgVM8Jn0Zn4KrFykmGMvT1fNUmeYujisRDXS3Pb3rRa8n20QBff7OL2P8mgs00NWoKxJf4');
+const confirmCheckout = document.getElementById('confirm-checkout');
 
-(async () => {
-	const response = await fetch('http://127.0.0.1:8000/secret');
-	const {client_secret: clientSecret} = await response.json();
-
-	const options = {
-	  clientSecret: clientSecret,
-	  appearance: { theme: 'stripe' }
-	};
+confirmCheckout.addEventListener('click', () => { 
+	const token = localStorage.getItem('access_token');
+	const cartId = localStorage.getItem('cart_id');
 	
-	const elements = stripe.elements(options);
-
-	const paymentElement = elements.create('payment', { layout: 'accordion' });
-	paymentElement.mount('#payment-element');
-
-	const form = document.getElementById('payment-form');
-
-	form.addEventListener('submit', async (event) => {
-		event.preventDefault();
-
-		const {error} = await stripe.confirmPayment({
-			elements,
-			confirmParams: {
-				return_url: 'http://localhost:5500/post-checkout.html',
-			},
-		});
-
-		if (error) {
-			const messageContainer = document.querySelector('#error-message');
-			messageContainer.textContent = error.message;
-		} else {
-
+	fetch(`/viewcart/${cartId}`, {
+		method: 'GET',
+		headers: {
+			"Authorization": `Bearer ${token}`,
+			"Accept": 'application/json, text/plain, */*',
+			"Content-type": 'application/json'
 		}
-	});
-})();
 
+	})
+  	.then(res => {
+        	return res.json().then(data => ({ status: res.status, data: data }));
+        })
+        .then(({ status, data }) => {
+        	if (status === 200) {
+			const items = data.cart_products;
+	
+			fetch('the_name_of_the_route', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(items)
+			})
+			.then((res) => {
+				if (res.ok) return res.json()
+			})
+			.then(({ url}) => {
+				window.location = url
+			})
+})
+	
