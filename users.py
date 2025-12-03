@@ -122,8 +122,8 @@ def user_create(user: UserCreate, db: Session = Depends(get_db_users), Authorize
     email1 = user.email
     user_id = db.query(User.id).filter(User.email == user.email).scalar()
     role1 = db.query(User.role).filter(User.email == user.email).scalar() 
-    access_token = Authorize.create_access_token(subject=user_id, user_claims={"email": email1, "role": role1})
-    refresh_token = Authorize.create_refresh_token(subject=user_id, user_claims={"email": email1, "role": role1})
+    access_token = Authorize.create_access_token(subject=user_id, user_claims={"email": email1, "role": role1, "id": user_id})
+    refresh_token = Authorize.create_refresh_token(subject=user_id, user_claims={"email": email1, "role": role1, "id": user_id})
     return {"access_token": access_token, "refresh_token": refresh_token}
 
 @fastapi.post('/signin/')
@@ -137,8 +137,8 @@ def user_login(user: UserLogin, db: Session = Depends(get_db_users), Authorize: 
         user_id = db.query(User.id).filter(User.email == user.email).scalar()
         role1 = db.query(User.role).filter(User.email == user.email).scalar() 
         role1 = str(role1).strip()
-        access_token = Authorize.create_access_token(subject=user_id, user_claims={"email": user.email, "role": role1})
-        refresh_token = Authorize.create_refresh_token(subject=user_id, user_claims={"email": user.email, "role": role1})
+        access_token = Authorize.create_access_token(subject=user_id, user_claims={"email": user.email, "role": role1, "id":user_id})
+        refresh_token = Authorize.create_refresh_token(subject=user_id, user_claims={"email": user.email, "role": role1, "id":user_id})
         return {"access_token": access_token, "refresh_token": refresh_token}
 #we return the encoded token to the user once he signs up or in, this token will be later used to access secured routes
     else:
@@ -151,6 +151,7 @@ def refresh(Authorize: AuthJWT = Depends()):
     claims = Authorize.get_raw_jwt()
     email = claims.get("email")
     role = claims.get("role")
+    id = claims.get("id")
     new_access_token = Authorize.create_access_token(user_claims={"email": email, "role": role})
     return {"access token": new_access_token}
 
@@ -212,7 +213,8 @@ def search_products(product_name: str, db: Session = Depends(get_db_products), A
 
 class Cart(Base):
     __tablename__ = "carts"
-    id = Column(Integer, primary_key=True)
+    item_id = Column(Integer, primary_key=True)
+    cart_id = Column(Integer)
     user_id = Column(String)
     product_id = Column(Integer)
 
@@ -239,34 +241,38 @@ def user_email(Authorize:AuthJWT = Depends()):
     email = claims.get("email")
     return email
 
+def user_id(Authorize:AuthJWT = Depends()):
+    claims = Authorize.get_raw_jwt()
+    if claims == None:
+        raise HTTPException(status_code=403, detail="login first bitch!")
+    id = claims.get("id")
+    return id
+
 
 #endpoint for adding a product to cart
 @fastapi.post('/addtocart/')
-def add_to_cart(product: AddToCart, db_carts: Session = Depends(get_db_carts), db_products: Session = Depends(get_db_products), email: str = Depends(user_email), Authorize: AuthJWT = Depends()):
+def add_to_cart(product: AddToCart, db_carts: Session = Depends(get_db_carts), db_products: Session = Depends(get_db_products), email: str = Depends(user_email), user_id1: str = Depends(user_id), Authorize: AuthJWT = Depends()):
     Authorize.jwt_required() 
     product_id1 = db_products.query(Product.id).filter(Product.name == product.product_name).scalar()
     if not product_id1:
         raise HTTPException(status_code=404, detail="product not found!")
-    added_product = Cart(user_id = email, product_id = product_id1)
-    db_carts.add(added_product)
+    new_item = Cart(cart_id = user_id1, product_id = product_id1, user_id = user_id1)
+    db_carts.add(new_item)
     db_carts.commit()
-    cart_id = db_carts.query(Cart.id).filter(Cart.user_id = email).scalar()
+    cart_id = user_id1
     return {
             "message": "product added to cart successfuly!",
             "cart_id": cart_id
     }
         
 #endpoint for viewing stuff in cart
-@fastapi.get('/viewcart/{Cart.id}')
-def view_cart(email: str = Depends(user_email), db_carts: Session = Depends(get_db_carts), db_products: Session = Depends(get_db_products), Authorize: AuthJWT = Depends()):
+@fastapi.get('/viewcart/{Cart.cart_id}')
+def view_cart(user_id1: str = Depends(user_id), email: str = Depends(user_email), db_carts: Session = Depends(get_db_carts), db_products: Session = Depends(get_db_products), Authorize: AuthJWT = Depends()):
     Authorize.jwt_required() 
-    product_ids = [p[0] for p in db_carts.query(Cart.product_id).filter(Cart.user_id == email).all()]
-    if not product_ids:
-        return {"message": "your cart is empty!"}
-    products = db_products.query(Product).filter(Product.id.in_(product_ids)).all()
+    cart_items = [p[0] for p in db_carts.query(Cart.product_id).filter(Cart.cart_id == user_id1).all()]
+    products = db_products.query(Product).filter(Product.id.in_(cart_items)).all()
     output = [
                 {
-                "id": p.id,
                 "name": p.name,
                 "price": p.price
                 }
@@ -285,4 +291,6 @@ def remove_product(product: RemoveProductFromCart, email: str = Depends(user_ema
     db_carts.commit()
     return {"message": "product removed from cart!"}
 
-
+@fastapi.post('/create-checkout-session')
+def create_checkout_session():
+    return { url: 'Hi' }
