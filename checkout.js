@@ -4,7 +4,7 @@ confirmCheckout.addEventListener('click', () => {
 	const token = localStorage.getItem('access_token');
 	const cartId = localStorage.getItem('cart_id');
 	
-	fetch(`/viewcart/${cartId}`, {
+	fetch(`http://127.0.0.1:8000/viewcart/${cartId}`, {
 		method: 'GET',
 		headers: {
 			"Authorization": `Bearer ${token}`,
@@ -20,7 +20,7 @@ confirmCheckout.addEventListener('click', () => {
         	if (status === 200) {
 			const items = data.cart_products;
 	
-			fetch('the_name_of_the_route', {
+			fetch('http://1277.0.0.1:8000/create_checkout_session', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
@@ -29,9 +29,14 @@ confirmCheckout.addEventListener('click', () => {
 			})
 			.then((res) => {
 				if (res.ok) return res.json()
+				return res.json().then(json => Promise.reject(json))
 			})
-			.then(({ url}) => {
-				window.location = url
+			.then(({ url }) => {
+				console.log(url)
 			})
-})
-	
+			.catch(e => {
+				console.error(e.error)
+			})
+		}
+	});
+});
