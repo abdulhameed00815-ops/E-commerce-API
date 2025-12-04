@@ -73,10 +73,12 @@
 						})
 						.then(({ status, data }) => {
 							if (status === 200) {
+								console.log(data)
 								const output = document.getElementById('cart-output');
 								output.classList.add('output');
 								output.innerHTML = data.message;
 								setTimeout(() => output.remove(), 3000);
+								localStorage.setItem("cart_id", data.cart_id);
 							} else {
 								window.location.reload()
 								output.innerHTML = data.detail;
