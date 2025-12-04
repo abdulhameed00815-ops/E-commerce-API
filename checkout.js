@@ -20,7 +20,7 @@ confirmCheckout.addEventListener('click', () => {
         	if (status === 200) {
 			const items = data.cart_products;
 	
-			fetch('http://1277.0.0.1:8000/create_checkout_session', {
+			fetch('http://127.0.0.1:8000/create_checkout_session', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
@@ -32,10 +32,10 @@ confirmCheckout.addEventListener('click', () => {
 				return res.json().then(json => Promise.reject(json))
 			})
 			.then(({ url }) => {
-				console.log(url)
+				window.location = url;
 			})
-			.catch(e => {
-				console.error(e.error)
+			.catch((e) => {
+				console.error(e)
 			})
 		}
 	});
