@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, Depends, Body, Request, Response 
 from typing import List, Optional
-from sqlalchemy import create_engine, Column, String, Integer, ForeignKey 
+from sqlalchemy import create_engine, Column, String, Integer, ForeignKey, func 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session, relationship 
 from pydantic import BaseModel
@@ -232,6 +232,16 @@ class GetCart(BaseModel):
 
 class RemoveProductFromCart(BaseModel):
     product_id:int
+
+
+class CreateCheckoutSession(BaseModel):
+    name:str
+    price:int
+    quantity:int
+
+
+class CheckoutRequests(BaseModel):
+    cart_products: List[CreateCheckoutSession]
     
 
 def user_email(Authorize:AuthJWT = Depends()):
@@ -259,22 +269,23 @@ def add_to_cart(product: AddToCart, db_carts: Session = Depends(get_db_carts), d
     new_item = Cart(cart_id = user_id1, product_id = product_id1, user_id = user_id1)
     db_carts.add(new_item)
     db_carts.commit()
-    cart_id = user_id1
+    cart_id1 = user_id1
     return {
             "message": "product added to cart successfuly!",
-            "cart_id": cart_id
-    }
+            "cart_id": cart_id1
+        }
         
 #endpoint for viewing stuff in cart
-@fastapi.get('/viewcart/{Cart.cart_id}')
-def view_cart(user_id1: str = Depends(user_id), email: str = Depends(user_email), db_carts: Session = Depends(get_db_carts), db_products: Session = Depends(get_db_products), Authorize: AuthJWT = Depends()):
-    Authorize.jwt_required() 
-    cart_items = [p[0] for p in db_carts.query(Cart.product_id).filter(Cart.cart_id == user_id1).all()]
+@fastapi.get('/viewcart/{cart_id}')
+def view_cart(cart_id: int, db_carts: Session = Depends(get_db_carts), db_products: Session = Depends(get_db_products)):
+    cart_items = [p[0] for p in db_carts.query(Cart.product_id).filter(Cart.cart_id == cart_id).all()]
     products = db_products.query(Product).filter(Product.id.in_(cart_items)).all()
+    quantity = db_carts.query(func.count(Cart.item_id)).filter(Cart.cart_id == cart_id).scalar()
     output = [
                 {
                 "name": p.name,
-                "price": p.price
+                "price": p.price,
+                "quantity": quantity
                 }
                 for p in products
             ]
@@ -291,6 +302,25 @@ def remove_product(product: RemoveProductFromCart, email: str = Depends(user_ema
     db_carts.commit()
     return {"message": "product removed from cart!"}
 
-@fastapi.post('/create-checkout-session')
-def create_checkout_session():
-    return { url: 'Hi' }
+@fastapi.post('/create_checkout_session')
+def create_checkout_session(checkout_session: CheckoutRequests, Authorize: AuthJWT = Depends()):
+    Authorize.jwt_required()
+    for item in checkout_session:
+        item = item
+    session = stripe.checkout.session.create(
+            success_url="http://localhost:5500/homepage.html",
+            cancel_url="http://localhost:5500/signin.html",
+            payment_method_types=["card",],
+            mode='payment',
+            line_items=[
+                {"price_data": {
+                    'currency': 'usd',
+                    'product_data': {
+                        'name': item.name 
+                        },
+                    "unit_amount": item.price,
+                    },
+                "quantity": item.quantity} 
+                 ],
+            )
+    return { 'url': session.url }
