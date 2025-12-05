@@ -238,10 +238,6 @@ class CreateCheckoutSession(BaseModel):
     name:str
     price:int
     quantity:int
-
-
-class CheckoutRequests(BaseModel):
-    cart_products: List[CreateCheckoutSession]
     
 
 def user_email(Authorize:AuthJWT = Depends()):
@@ -303,24 +299,24 @@ def remove_product(product: RemoveProductFromCart, email: str = Depends(user_ema
     return {"message": "product removed from cart!"}
 
 @fastapi.post('/create_checkout_session')
-def create_checkout_session(checkout_session: CheckoutRequests, Authorize: AuthJWT = Depends()):
+def create_checkout_session(checkout_session: list[CreateCheckoutSession], Authorize: AuthJWT = Depends()):
     Authorize.jwt_required()
     for item in checkout_session:
         item = item
-    session = stripe.checkout.session.create(
-            success_url="http://localhost:5500/homepage.html",
-            cancel_url="http://localhost:5500/signin.html",
-            payment_method_types=["card",],
-            mode='payment',
-            line_items=[
-                {"price_data": {
-                    'currency': 'usd',
-                    'product_data': {
-                        'name': item.name 
+        session = stripe.checkout.Session.create(
+                success_url="http://localhost:5500/homepage.html",
+                cancel_url="http://localhost:5500/signin.html",
+                payment_method_types=["card",],
+                mode='payment',
+                line_items=[
+                    {"price_data": {
+                        'currency': 'usd',
+                        'product_data': {
+                            'name': item.name 
+                            },
+                        "unit_amount": item.price,
                         },
-                    "unit_amount": item.price,
-                    },
-                "quantity": item.quantity} 
-                 ],
-            )
+                    "quantity": item.quantity} 
+                     ],
+                )
     return { 'url': session.url }
