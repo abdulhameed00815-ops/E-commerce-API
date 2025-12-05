@@ -19,10 +19,10 @@ confirmCheckout.addEventListener('click', () => {
         .then(({ status, data }) => {
         	if (status === 200) {
 			const items = data.cart_products;
-	
 			fetch('http://127.0.0.1:8000/create_checkout_session', {
 				method: 'POST',
 				headers: {
+					"Authorization": `Bearer ${token}`,
 					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify(items)
