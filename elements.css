@@ -3,6 +3,8 @@ body{
 	padding:0;
 	background-image:url('/pictures/background.jpg');
 	background-size:cover;
+	background-repeat:no-repeat;
+	background-attachment:fixed;
 }
 
 * {
@@ -26,8 +28,8 @@ a{
 }
 
 .container{
-	margin:10% 20%;
-	border: 2px #444444 solid;
+	margin:10% 30%;
+	border: 2px black solid;
 	border-radius:20px;
 	padding:30px;
 	background-color:#444444;
@@ -35,14 +37,6 @@ a{
 
 .form .form-group{
 	padding:10px;
-}
-
-.form .button{
-	margin:10px;
-	background:red;
-	color:white;
-	font-family:Monospace;
-	font-weight:bold;
 }
 
 .form .title{
@@ -54,9 +48,9 @@ a{
 }
 
 .form input[type="text"]{
-	width:90%;
+	width:94%;
 	font-family:Monospace;
-	border:1px black solid;
+	border:2px black solid;
 	background-color:#222222;
 	color:white;
 }
@@ -74,6 +68,16 @@ a{
 
 .form input{
 	padding:10px;
+}
+
+
+.form .button{
+	margin:10px;
+	background:#FFC1CC;
+	color:black;
+	font-family:Monospace;
+	font-weight:bold;
+	border:2px black solid;
 }
 
 #output{
@@ -121,29 +125,23 @@ a{
 	padding:20px;
 }
 
-.top-panel form input[type="text"]{
-	width:90%;
-	font-family:Monospace;
-	border:1px black solid;
-	margin-bottom:7px;
-	width:500px;
-	padding:10px;
+#searh-button{
+	margin-left:10px;
 }
 
-.top-panel form input{
-	margin-left:50px;
-	border-radius:5px;
+#search-bar{
+	display:flex;
+	align-items:center;
 }
 
-.top-panel form input[type="submit"]{
-	padding:5px;
-	background-color:black;
-	color:white;
+.form-group1{
+	margin-right:10px;
 }
 
 .top-panel h1{
 	font-family:Monospace;
 	color:white;
+	margin-right:20px;
 }
 
 .buttonCheckout{
