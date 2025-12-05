@@ -1,7 +1,7 @@
 body{
 	margin:0;
 	padding:0;
-	background-image:url('/pictures/background7.jpg');
+	background-image:url('/pictures/background.jpg');
 	background-size:cover;
 }
 
@@ -27,11 +27,10 @@ a{
 
 .container{
 	margin:10% 20%;
-	border: 2px black solid;
+	border: 2px #444444 solid;
 	border-radius:20px;
-	padding:20px;
-	background-image:url('/pictures/blur7.png');
-	background-size:cover;
+	padding:30px;
+	background-color:#444444;
 }
 
 .form .form-group{
@@ -40,22 +39,37 @@ a{
 
 .form .button{
 	margin:10px;
-	background:black;
+	background:red;
 	color:white;
+	font-family:Monospace;
+	font-weight:bold;
 }
 
 .form .title{
 	margin:10px;
 	margin-bottom:20px;
-	font-family:Arial;
-	color:black;
+	font-family:Monospace;
+	color:white;
 	font-weight:bold;
 }
 
 .form input[type="text"]{
 	width:90%;
-	font-family:Arial;
+	font-family:Monospace;
 	border:1px black solid;
+	background-color:#222222;
+	color:white;
+}
+
+.form input{
+	border-radius:10px;
+}
+
+.form label{
+	display:block;
+	color:white;
+	margin-bottom:10px;
+	font-family:Monospace;
 }
 
 .form input{
@@ -65,7 +79,7 @@ a{
 #output{
 	margin-left:50px;
 	color:red;
-	font-family:Arial;
+	font-family:Monospace;
 }
 
 .product{
@@ -82,7 +96,7 @@ a{
 .product ul{
 	margin-top:70px;
 	color:black;
-	font-family:Arial;
+	font-family:Monospace;
 }
 
 .productImage{
@@ -100,7 +114,7 @@ a{
 }
 
 .top-panel{
-	background-color:coral;
+	background-color:#444444;
 	display:flex;
 	justify-content:center;
 	align-items:center;
@@ -109,7 +123,7 @@ a{
 
 .top-panel form input[type="text"]{
 	width:90%;
-	font-family:Arial;
+	font-family:Monospace;
 	border:1px black solid;
 	margin-bottom:7px;
 	width:500px;
@@ -128,6 +142,12 @@ a{
 }
 
 .top-panel h1{
-	font-family:Arial;
+	font-family:Monospace;
+	color:white;
+}
+
+.buttonCheckout{
+	margin:10px;
+	background:black;
 	color:white;
 }
