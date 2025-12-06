@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href="elements.css?v=123">
+	</head>
+	<body>
+		<div class="container">
+			<h1 class="text">Your cart</h1>
+			<h2 id="output1"></h2>
+			<button id="checkout-thing" class="button2checkout">Checkout</button>
+		</div>
+	</body>
+	<script>
+		const output = document.getElementById('output1');
+		
+		window.onload = function cartItems() {
+			const token = localStorage.getItem('access_token');
+			const cartId = localStorage.getItem('cart_id');
+
+			fetch(`http://127.0.0.1:8000/viewcart/${cartId}`, {
+				method: 'GET',
+				headers: {
+					"Authorization": `Bearer ${token}`,
+					"Accept": 'application/json, text/plain, */*',
+					"Content-type": 'application/json'
+				}
+
+			})
+			.then(res => {
+				return res.json().then(data => ({ status: res.status, data: data }));
+			})
+			.then(({ status, data }) => {
+				if (status === 200) {
+					const items = data.cart_products;
+					items.forEach(function(item) {
+						output.classList.add('text');
+						output.innerHTML += `
+							<ul>
+								<li>${item.name}, quantity:${item.quantity}, price:${item.price / 100}$</li>
+							</ul>
+						`;
+					});
+				}
+			});
+
+		}
+
+		const checkout = document.getElementById('checkout-thing');
+		checkout.addEventListener('click', () => {
+		const token = localStorage.getItem('access_token');
+		const cartId = localStorage.getItem('cart_id');
+
+		fetch(`http://127.0.0.1:8000/viewcart/${cartId}`, {
+			method: 'GET',
+			headers: {
+				"Authorization": `Bearer ${token}`,
+				"Accept": 'application/json, text/plain, */*',
+				"Content-type": 'application/json'
+			}
+
+		})
+		.then(res => {
+			return res.json().then(data => ({ status: res.status, data: data }));
+		})
+		.then(({ status, data }) => {
+			if (status === 200) {
+				const items = data.cart_products;
+				fetch('http://127.0.0.1:8000/create_checkout_session', {
+					method: 'POST',
+					headers: {
+						"Authorization": `Bearer ${token}`,
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify(items)
+				})
+				.then((res) => {
+					if (res.ok) return res.json()
+					return res.json().then(json => Promise.reject(json))
+				})
+				.then(({ url }) => {
+					window.location = url;
+				})
+				.catch((e) => {
+					console.error(e)
+				})
+			}
+		});
+	});
+              
+
+
+	</script>
+</html>
+
