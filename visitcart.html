@@ -36,14 +36,22 @@
 						output.classList.add('text');
 						output.innerHTML += `
 							<ul>
-								<li>${item.name}, quantity:${item.quantity}, price:${item.price / 100}$</li>
+								<li>${item.name}, price:${item.price / 100}$</li>
 							</ul>
+
+							<form id="quantity-form">
+								<label for="quantity">Quantity: </label>
+								<input type="text" id="quantity">
+							</form>
 						`;
+
+
 					});
 				}
 			});
 
 		}
+
 
 		const checkout = document.getElementById('checkout-thing');
 		checkout.addEventListener('click', () => {
@@ -85,7 +93,8 @@
 				})
 			}
 		});
-	});
+		})
+
               
 
 
