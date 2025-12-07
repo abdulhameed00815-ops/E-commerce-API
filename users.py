@@ -238,6 +238,10 @@ class CreateCheckoutSession(BaseModel):
     name:str
     price:int
     quantity:int
+
+
+class Quantity(BaseModel):
+    quantity:int
     
 
 def user_email(Authorize:AuthJWT = Depends()):
@@ -270,18 +274,18 @@ def add_to_cart(product: AddToCart, db_carts: Session = Depends(get_db_carts), d
             "message": "product added to cart successfuly!",
             "cart_id": cart_id1
         }
+
+
         
 #endpoint for viewing stuff in cart
 @fastapi.get('/viewcart/{cart_id}')
 def view_cart(cart_id: int, db_carts: Session = Depends(get_db_carts), db_products: Session = Depends(get_db_products)):
     cart_items = [p[0] for p in db_carts.query(Cart.product_id).filter(Cart.cart_id == cart_id).all()]
     products = db_products.query(Product).filter(Product.id.in_(cart_items)).all()
-    quantity = db_carts.query(func.count(Cart.item_id)).filter(Cart.cart_id == cart_id).scalar()
     output = [
                 {
                 "name": p.name,
                 "price": p.price,
-                "quantity": quantity
                 }
                 for p in products
             ]
@@ -297,6 +301,10 @@ def remove_product(product: RemoveProductFromCart, email: str = Depends(user_ema
     db_carts.delete(desired_product) 
     db_carts.commit()
     return {"message": "product removed from cart!"}
+
+@fastapi.post('/quantity')
+def get_quantity(quantity: Quantity):
+
 
 @fastapi.post('/create_checkout_session')
 def create_checkout_session(checkout_session: list[CreateCheckoutSession], Authorize: AuthJWT = Depends()):
