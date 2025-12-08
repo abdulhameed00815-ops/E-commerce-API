@@ -302,9 +302,6 @@ def remove_product(product: RemoveProductFromCart, email: str = Depends(user_ema
     db_carts.commit()
     return {"message": "product removed from cart!"}
 
-@fastapi.post('/quantity')
-def get_quantity(quantity: Quantity):
-
 
 @fastapi.post('/create_checkout_session')
 def create_checkout_session(checkout_session: list[CreateCheckoutSession], Authorize: AuthJWT = Depends()):
