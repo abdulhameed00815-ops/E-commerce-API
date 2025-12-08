@@ -32,25 +32,36 @@
 			.then(({ status, data }) => {
 				if (status === 200) {
 					const items = data.cart_products;
-					items.forEach(function(item) {
+					items.forEach(function(item, index) {
 						output.classList.add('text');
 						output.innerHTML += `
 							<ul>
 								<li>${item.name}, price:${item.price / 100}$</li>
 							</ul>
 
-							<form id="quantity-form">
+							<form id="quantity1-form">
 								<label for="quantity">Quantity: </label>
 								<input type="text" id="quantity">
 							</form>
 						`;
 
+						const form = document.getElementById('quantity1-form');
+						const checkout = document.getElementById('checkout-thing')
+						quantity = document.getElementById('quantity').value;
 
-					});
-				}
-			});
+						items[index] = {
+							name: item.name,
+							price: item.price,
+							quantity: quantity
+						}
+					})
+					checkout.onclick = console.log(items);
+						
 
-		}
+					};
+				})
+			};
+
 
 
 		const checkout = document.getElementById('checkout-thing');
