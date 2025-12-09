@@ -1,3 +1,4 @@
+import json
 from fastapi import FastAPI, HTTPException, Depends, Body, Request, Response 
 from typing import List, Optional
 from sqlalchemy import create_engine, Column, String, Integer, ForeignKey, func 
@@ -289,7 +290,8 @@ def view_cart(cart_id: int, db_carts: Session = Depends(get_db_carts), db_produc
                 }
                 for p in products
             ]
-    return {"cart_products": output}
+    json_output = json.dumps(output, indent=4)
+    return {"cart_products": json_output}
 
 
 @fastapi.put('/removeproductfromcart/', tags=["cart"])
@@ -301,6 +303,9 @@ def remove_product(product: RemoveProductFromCart, email: str = Depends(user_ema
     db_carts.delete(desired_product) 
     db_carts.commit()
     return {"message": "product removed from cart!"}
+
+@fastapi.post('/cart_finalize')
+def cart_finalize()
 
 
 @fastapi.post('/create_checkout_session')
