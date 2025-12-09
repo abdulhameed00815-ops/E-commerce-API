@@ -7,11 +7,12 @@
 		<div class="container">
 			<h1 class="text">Your cart</h1>
 			<h2 id="output1"></h2>
-			<button id="checkout-thing" class="button2checkout">Checkout</button>
+			<button id="submitCart" class="link2button">Checkout</button>
 		</div>
 	</body>
 	<script>
 		const output = document.getElementById('output1');
+		const button = document.getElementById('submitCart');
 		
 		window.onload = function cartItems() {
 			const token = localStorage.getItem('access_token');
@@ -32,30 +33,53 @@
 			.then(({ status, data }) => {
 				if (status === 200) {
 					const items = data.cart_products;
-					items.forEach(function(item, index) {
+					items.forEach(function(item) {
 						output.classList.add('text');
 						output.innerHTML += `
 							<ul>
 								<li>${item.name}, price:${item.price / 100}$</li>
 							</ul>
 
-							<form id="quantity1-form">
-								<label for="quantity">Quantity: </label>
-								<input type="text" id="quantity">
+							<form id="${item.name}-form">
+								<label for="${item.name}quantity">Quantity: </label>
+								<input type="number" id="${item.name}quantity">
 							</form>
 						`;
 
-						const form = document.getElementById('quantity1-form');
-						const checkout = document.getElementById('checkout-thing')
-						quantity = document.getElementById('quantity').value;
+						
 
-						items[index] = {
-							name: item.name,
-							price: item.price,
-							quantity: quantity
-						}
+						const button = document.getElementById('submitCart');
+						button.addEventListener("click", () => {
+
+							items.forEach((item) => {
+
+								const quantity1 = document.getElementById(`${item.name}quantity`).value;
+								item.quantity = parseInt(quantity1);	
+							});
+
+    							fetch('http://127.0.0.1:8000/create_checkout_session', {
+							method: 'POST',
+							headers: {
+								"Authorization": `Bearer ${token}`,
+								'Content-Type': 'application/json'
+							},
+							body: JSON.stringify(items)
+							})
+							.then((res) => {
+								if (res.ok) return res.json()
+								return res.json().then(json => Promise.reject(json))
+							})
+							.then(({ url }) => {
+								window.location = url;
+							})
+							.catch((e) => {
+								console.error(e)
+							})
+
+						});
+
 					})
-					checkout.onclick = console.log(items);
+
 						
 
 					};
@@ -64,47 +88,6 @@
 
 
 
-		const checkout = document.getElementById('checkout-thing');
-		checkout.addEventListener('click', () => {
-		const token = localStorage.getItem('access_token');
-		const cartId = localStorage.getItem('cart_id');
-
-		fetch(`http://127.0.0.1:8000/viewcart/${cartId}`, {
-			method: 'GET',
-			headers: {
-				"Authorization": `Bearer ${token}`,
-				"Accept": 'application/json, text/plain, */*',
-				"Content-type": 'application/json'
-			}
-
-		})
-		.then(res => {
-			return res.json().then(data => ({ status: res.status, data: data }));
-		})
-		.then(({ status, data }) => {
-			if (status === 200) {
-				const items = data.cart_products;
-				fetch('http://127.0.0.1:8000/create_checkout_session', {
-					method: 'POST',
-					headers: {
-						"Authorization": `Bearer ${token}`,
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify(items)
-				})
-				.then((res) => {
-					if (res.ok) return res.json()
-					return res.json().then(json => Promise.reject(json))
-				})
-				.then(({ url }) => {
-					window.location = url;
-				})
-				.catch((e) => {
-					console.error(e)
-				})
-			}
-		});
-		})
 
               
 
