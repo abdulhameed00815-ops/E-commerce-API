@@ -56,30 +56,28 @@
 								const quantity1 = document.getElementById(`${item.name}quantity`).value;
 								item.quantity = parseInt(quantity1);	
 							});
+						fetch('http://127.0.0.1:8000/create_checkout_session', {
+						method: 'POST',
+						headers: {
+							"Authorization": `Bearer ${token}`,
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify(items)
+						})
+						.then((res) => {
+							if (res.ok) return res.json()
+							return res.json().then(json => Promise.reject(json))
+						})
+						.then(({ url }) => {
+							window.location = url;
+						})
+						.catch((e) => {
+							console.error(e)
+						})
 
-    							fetch('http://127.0.0.1:8000/create_checkout_session', {
-							method: 'POST',
-							headers: {
-								"Authorization": `Bearer ${token}`,
-								'Content-Type': 'application/json'
-							},
-							body: JSON.stringify(items)
-							})
-							.then((res) => {
-								if (res.ok) return res.json()
-								return res.json().then(json => Promise.reject(json))
-							})
-							.then(({ url }) => {
-								window.location = url;
-							})
-							.catch((e) => {
-								console.error(e)
-							})
-
-						});
+					});
 
 					})
-
 						
 
 					};
