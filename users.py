@@ -189,7 +189,7 @@ def user_role(Authorize:AuthJWT = Depends()):
 @fastapi.get('/displayproducts/')
 def display_products(db: Session = Depends(get_db_products)):
     products = db.query(Product).all()
-    return products
+    return list(products)
 
 
 @fastapi.post('/addproduct/', tags=["products"])
@@ -290,8 +290,7 @@ def view_cart(cart_id: int, db_carts: Session = Depends(get_db_carts), db_produc
                 }
                 for p in products
             ]
-    json_output = json.dumps(output, indent=4)
-    return {"cart_products": json_output}
+    return {"cart_products": output}
 
 
 @fastapi.put('/removeproductfromcart/', tags=["cart"])
@@ -304,21 +303,15 @@ def remove_product(product: RemoveProductFromCart, email: str = Depends(user_ema
     db_carts.commit()
     return {"message": "product removed from cart!"}
 
-@fastapi.post('/cart_finalize')
-def cart_finalize()
-
-
 @fastapi.post('/create_checkout_session')
 def create_checkout_session(checkout_session: list[CreateCheckoutSession], Authorize: AuthJWT = Depends()):
     Authorize.jwt_required()
-    for item in checkout_session:
-        item = item
-        session = stripe.checkout.Session.create(
-                success_url="http://localhost:5500/homepage.html",
-                cancel_url="http://localhost:5500/signin.html",
-                payment_method_types=["card",],
-                mode='payment',
-                line_items=[
+    session = stripe.checkout.Session.create(
+            success_url="http://localhost:5500/homepage.html",
+            cancel_url="http://localhost:5500/signin.html",
+            payment_method_types=["card",],
+            mode='payment',
+            line_items=[
                     {"price_data": {
                         'currency': 'usd',
                         'product_data': {
@@ -327,6 +320,7 @@ def create_checkout_session(checkout_session: list[CreateCheckoutSession], Autho
                         "unit_amount": item.price,
                         },
                     "quantity": item.quantity} 
-                     ],
-                )
+                    for item in checkout_session
+                      ],
+            )
     return { 'url': session.url }
