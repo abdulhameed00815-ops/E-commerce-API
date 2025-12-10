@@ -87,14 +87,11 @@ a{
 }
 
 .product{
-	border: 2px black solid;
-	border-radius:10px;
 	padding:none;
 	margin:10px;
-	margin: 100px 200px;
+	margin: 20px 200px;
 	display:flex;
 	justify-content:flex-start;
-	background-color:white;
 }
 
 .product ul{
@@ -112,9 +109,14 @@ a{
 }
 
 .buttonCart{
-	margin:10px;
-	background:black;
-	color:white;
+	padding:10px;
+	margin:20px;
+	background:#FFC1CC;
+	border-radius:10px;
+	color:black;
+	font-family:Monospace;
+	font-weight:bold;
+	border:2px black solid;
 }
 
 .top-panel .centered{
@@ -125,6 +127,7 @@ a{
 
 .top-panel{
 	background-color:#444444;
+	border-bottom:2px black solid;
 	padding:20px;
 	display:grid;
 	justify-items:center;
@@ -191,4 +194,12 @@ a{
 
 #output1{
 	margin:20px;
+}
+
+#border{
+	border:2px black solid;
+	border-radius:10px;
+	margin:20px;
+	padding:20px 600px 20px 40px;
+	background-color:#444444;
 }
