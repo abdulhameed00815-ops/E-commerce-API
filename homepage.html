@@ -27,12 +27,45 @@
 		</div>
 	</body>
 	<script>
+
+		const token = localStorage.getItem("access_token");
+		productDivHome = document.getElementById('productDiv');
+		window.onload = function displayProducts() {
+			fetch('http://127.0.0.1:8000/displayproducts/', {
+			method:'GET',
+			headers: {
+				"Authorization": `Bearer ${token}`
+			}
+		})
+
+		.then(res => {
+			return res.json().then(data => ({ status: res.status, data: data }));
+		})
+		.then(({ status, data }) => {
+			if (status === 200) {
+				data.forEach(function(product) {
+					productDivHome.setAttribute("class", "product");
+					output.innerHTML += `
+						<div id="border">
+							<ul>
+								<li>${product.name}</li>
+								<li>Price: ${product.price/100}$</li>
+							</ul>
+							<button id="cart-button" class="buttonCart">Add to cart</button>
+							<h3 id="cart-output"></h3>
+						</div>
+
+					`;
+					
+				})
+			}
+		});
+		}
 		document.getElementById('search-button').addEventListener('click', searchProduct);
 		
 		function searchProduct(e){
 			e.preventDefault()
 			const product = document.getElementById('searched-product').value;	
-			const token = localStorage.getItem("access_token");
 			const output = document.getElementById('output');
 			fetch(`http://127.0.0.1:8000/searchproducts/${product}`, {
 				method: 'GET',
@@ -55,7 +88,6 @@
 							<li>Price: ${data.price}</li>
 						</ul>
 						<button id="cart-button" class="buttonCart">Add to cart</button>
-						<button id="checkout-button" class="buttonChechout">Checkout</button>
 						<h3 id="cart-output"></h3>
 
 					`;
