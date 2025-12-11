@@ -29,7 +29,6 @@
 	<script>
 
 		const token = localStorage.getItem("access_token");
-		productDivHome = document.getElementById('productDiv');
 		window.onload = function displayProducts() {
 			fetch('http://127.0.0.1:8000/displayproducts/', {
 			method:'GET',
@@ -44,6 +43,7 @@
 		.then(({ status, data }) => {
 			if (status === 200) {
 				data.forEach(function(product) {
+					productDivHome = document.getElementById('productDiv');
 					productDivHome.setAttribute("class", "product");
 					output.innerHTML += `
 						<div id="border">
@@ -51,16 +51,52 @@
 								<li>${product.name}</li>
 								<li>Price: ${product.price/100}$</li>
 							</ul>
-							<button id="cart-button" class="buttonCart">Add to cart</button>
+							<button id="${product.name}-button" class="buttonCart">Add to cart</button>
 							<h3 id="cart-output"></h3>
 						</div>
 
 					`;
+
 					
-				})
-			}
-		});
-		}
+					
+					document.getElementById(`${product.name}-button`).addEventListener('click', AddToCart);
+					const product1 = product.name;
+					function AddToCart(e){
+						e.preventDefault();
+						fetch('http://127.0.0.1:8000/addtocart/', { 
+							method: 'POST',
+							headers: {
+								"Authorization": `Bearer ${token}`,
+								"Accept": 'application/json, text/plain, */*',
+								"Content-type": 'application/json'
+							},
+							body:JSON.stringify({product_name:product1})
+						})
+						.then(res => {
+							return res.json().then(data => ({ status: res.status, data: data }));
+						})
+						.then(({ status, data }) => {
+							if (status === 200) {
+								console.log(data)
+								const cartOutput = document.getElementById('cart-output');
+								cartOutput.classList.add('output');
+								cartOutput.innerHTML = data.message;
+								setTimeout(() => cartOutput.remove(), 3000);
+								localStorage.setItem("cart_id", data.cart_id);
+							} else {
+								window.location.reload()
+								output.innerHTML = data.detail;
+								setTimeout(() => output.remove(), 5000);
+
+							}
+						});
+
+
+					
+				}
+			})
+		};
+		})
 		document.getElementById('search-button').addEventListener('click', searchProduct);
 		
 		function searchProduct(e){
@@ -78,18 +114,17 @@
                         })
                         .then(({ status, data }) => {
                                 if (status === 200) {
-					const productImage = document.getElementById('product-image');
-					productImage.classList.add('productImage');
 					const productDiv = document.getElementById('productDiv');
 					productDiv.classList.add('product');
 					output.innerHTML = `
-						<ul>
-							<li>${data.name}</li>
-							<li>Price: ${data.price}</li>
-						</ul>
-						<button id="cart-button" class="buttonCart">Add to cart</button>
-						<h3 id="cart-output"></h3>
-
+						<div id="border">
+							<ul>
+								<li>${data.name}</li>
+								<li>Price: ${data.price/100}$</li>
+							</ul>
+							<button id="cart-button" class="buttonCart">Add to cart</button>
+							<h3 id="cart-output"></h3>
+						</div>
 					`;
 							
 					document.getElementById('cart-button').addEventListener('click', AddToCart);
@@ -139,6 +174,8 @@
 
 				}
 			});
+		}
+
 		}
 
 	</script>
