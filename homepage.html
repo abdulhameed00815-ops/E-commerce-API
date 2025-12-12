@@ -20,11 +20,22 @@
 			<a class="link2button" href="http://localhost:5500/visitcart.html">Cart</a>
 		</div>
 
+
 		</div>
+		
+		<div id="nav-bar">
+			<ul>
+				<li><a href="aboutme.html">about me</a></li>
+				<li><a href="">admin</a></li>
+			</ul>
+		<div>
+
 		<div id="productDiv">
 			<div id="product-image"></div>
 		<h2 id='output'></h2>
 		</div>
+
+
 	</body>
 	<script>
 
@@ -43,26 +54,26 @@
 		.then(({ status, data }) => {
 			if (status === 200) {
 				data.forEach(function(product) {
-					productDivHome = document.getElementById('productDiv');
+					const productDivHome = document.getElementById('productDiv');
 					productDivHome.setAttribute("class", "product");
-					output.innerHTML += `
-						<div id="border">
+					output.insertAdjacentHTML("beforeend", `
+						<div id="${product.name}-border">
 							<ul>
 								<li>${product.name}</li>
 								<li>Price: ${product.price/100}$</li>
 							</ul>
 							<button id="${product.name}-button" class="buttonCart">Add to cart</button>
-							<h3 id="cart-output"></h3>
+							<h3 id="${product.name}-output"></h3>
 						</div>
 
-					`;
+					`);
 
-					
-					
-					document.getElementById(`${product.name}-button`).addEventListener('click', AddToCart);
-					const product1 = product.name;
-					function AddToCart(e){
+					div = document.getElementById(`${product.name}-border`);
+					div.setAttribute("class", "border");
+					const btn = document.getElementById(`${product.name}-button`)
+					btn.addEventListener('click', function AddToCart(e){
 						e.preventDefault();
+						const product1 = product.name;
 						fetch('http://127.0.0.1:8000/addtocart/', { 
 							method: 'POST',
 							headers: {
@@ -78,7 +89,7 @@
 						.then(({ status, data }) => {
 							if (status === 200) {
 								console.log(data)
-								const cartOutput = document.getElementById('cart-output');
+								const cartOutput = document.getElementById(`${product.name}-output`);
 								cartOutput.classList.add('output');
 								cartOutput.innerHTML = data.message;
 								setTimeout(() => cartOutput.remove(), 3000);
@@ -93,7 +104,7 @@
 
 
 					
-				}
+					})
 			})
 		};
 		})
@@ -126,6 +137,9 @@
 							<h3 id="cart-output"></h3>
 						</div>
 					`;
+
+					const div = document.getElementById('border');
+					div.setAttribute('class', 'border');
 							
 					document.getElementById('cart-button').addEventListener('click', AddToCart);
 
