@@ -198,8 +198,8 @@ a{
 
 .border{
 	border:1px black solid;
-	margin:10px 50%;
-	padding:20px 600px 20px 40px;
+	margin:10px 15%;
+	padding:20px 700px 20px 100px;
 	background-color:#444444;
 }
 
@@ -213,13 +213,11 @@ a{
 #nav-bar{
 	border:2px black solid;
 	background-color:#222222;
-	width:10%;
-	height:100%;
 }
 
 #nav-bar a{
 	width:80px;
-	margin:30px;
+	margin:50px;
 	background:#FFC1CC;
 	border-radius:10px;
 	color:black;
@@ -229,3 +227,6 @@ a{
 	white-space:nowrap;
 }
 
+.not-top-panel{
+	display:flex;
+}
