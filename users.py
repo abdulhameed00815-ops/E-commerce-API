@@ -192,14 +192,17 @@ def display_products(db: Session = Depends(get_db_products)):
     return list(products)
 
 
-@fastapi.post('/addproduct/', tags=["products"])
-def product_create(product: ProductCreate, db: Session = Depends(get_db_products)):
+@fastapi.post('/addproduct/')
+def product_create(product: ProductCreate, db: Session = Depends(get_db_products), Authorize: AuthJWT = Depends(), role: str = Depends(user_role)):
+    Authorize.jwt_required() 
+    if role != "admin":
+        raise HTTPException(status_code=403, detail="this page is for admins only!")
     if db.query(Product).filter(Product.name == product.name).first():
         raise HTTPException(status_code=404, detail="product already exists!")
     new_product = Product(name = product.name, description = product.description, price = product.price)
     db.add(new_product)
     db.commit()
-    return {"product added!"}
+    return {"message": "product added!"}
 
 
 @fastapi.get('/searchproducts/{product_name}', response_model=ProductResponse)
@@ -216,7 +219,7 @@ class Cart(Base):
     __tablename__ = "carts"
     item_id = Column(Integer, primary_key=True)
     cart_id = Column(Integer)
-    user_id = Column(String)
+    user_id = Column(Integer)
     product_id = Column(Integer)
 
 
@@ -232,7 +235,7 @@ class GetCart(BaseModel):
 
 
 class RemoveProductFromCart(BaseModel):
-    product_id:int
+    product_name:str
 
 
 class CreateCheckoutSession(BaseModel):
@@ -293,10 +296,12 @@ def view_cart(cart_id: int, db_carts: Session = Depends(get_db_carts), db_produc
     return {"cart_products": output}
 
 
-@fastapi.put('/removeproductfromcart/', tags=["cart"])
-def remove_product(product: RemoveProductFromCart, email: str = Depends(user_email), db_carts: Session = Depends(get_db_carts), Authorize: AuthJWT = Depends()):
+@fastapi.put('/removeproductfromcart/')
+def remove_product(product: RemoveProductFromCart, db_users: Session = Depends(get_db_users), email: str = Depends(user_email), db_products: Session = Depends(get_db_products), db_carts: Session = Depends(get_db_carts), Authorize: AuthJWT = Depends()):
     Authorize.jwt_required() 
-    desired_product = db_carts.query(Cart).filter(Cart.product_id == product.product_id, Cart.user_id == email).first()
+    item_owner_id = db_users.query(User.id).filter(User.email == email).scalar()
+    product_id1 = db_products.query(Product.id).filter(Product.name == product.product_name).scalar()
+    desired_product = db_carts.query(Cart).filter(Cart.product_id == product_id1, Cart.user_id == item_owner_id).first()
     if not desired_product:
         raise HTTPException(status_code=404, detail="product unavailable!")
     db_carts.delete(desired_product) 
