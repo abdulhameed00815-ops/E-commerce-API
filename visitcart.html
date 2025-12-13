@@ -13,9 +13,9 @@
 	<script>
 		const output = document.getElementById('output1');
 		const button = document.getElementById('submitCart');
+		const token = localStorage.getItem('access_token');
 		
 		window.onload = function cartItems() {
-			const token = localStorage.getItem('access_token');
 			const cartId = localStorage.getItem('cart_id');
 
 			fetch(`http://127.0.0.1:8000/viewcart/${cartId}`, {
@@ -35,7 +35,7 @@
 					const items = data.cart_products;
 					items.forEach(function(item) {
 						output.classList.add('text');
-						output.innerHTML += `
+						output.insertAdjacentHTML('beforeend', `
 							<ul id="item">
 								<li>${item.name}, price:${item.price / 100}$</li>
 							</ul>
@@ -44,9 +44,36 @@
 								<label for="${item.name}quantity">Quantity: </label>
 								<input type="number" id="${item.name}quantity">
 							</form>
-						`;
+							<button id="remove${item.name}" class="link2button">Remove from cart</button>
+						`);
 
 						
+						const removeBtn = document.getElementById(`remove${item.name}`);
+						removeBtn.addEventListener('click', function removeItem(e) {
+							e.preventDefault();
+							fetch('http://127.0.0.1:8000/removeproductfromcart/', {
+								method: 'PUT',
+								headers: {
+									"Authorization": `Bearer ${token}`,
+									"Accept": 'application/json, text/plain, */*',
+									"Content-type": 'application/json'
+								},
+								body:JSON.stringify({product_name:item.name})
+
+							})
+							.then(res => {
+							return res.json().then(data => ({ status: res.status, data: data }));
+							})
+							.then(({ status, data }) => {
+							if (status === 200) {
+								window.reload();
+							}
+
+
+							})
+
+						});
+							
 
 						const button = document.getElementById('submitCart');
 						button.addEventListener("click", () => {
@@ -55,6 +82,7 @@
 
 								const quantity1 = document.getElementById(`${item.name}quantity`).value;
 								item.quantity = parseInt(quantity1);	
+
 							});
 						fetch('http://127.0.0.1:8000/create_checkout_session', {
 						method: 'POST',
@@ -82,14 +110,13 @@
 
 					};
 				})
-			};
 
 
 
 
               
 
-
+		}
 	</script>
 </html>
 
