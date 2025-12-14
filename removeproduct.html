@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+        <head>
+                <link rel="stylesheet" type="text/css" href="elements.css?v=123">
+        </head>
+        <body>
+                <div class="container">
+                <form id="removeProduct" class="form">
+                        <h2 class="title">Remove a product.</h2>
+                        <h3 id="output1"><h3>
+
+                        <div class="form-group">
+                                <input type="text" id="name" placeholder="Product_name">
+                        </div>
+
+                        <input id="post" type="submit" value="Remove product" class="button">
+                </form>
+                </div>
+	</body>
+                <script>
+			const token = localStorage.getItem("access_token");
+			form = document.getElementById('removeProduct');
+			form.addEventListener("submit", function removeProduct(e) {
+				e.preventDefault();
+				const product_intended = document.getElementById('name').value; 
+				fetch('http://127.0.0.1:8000/removeproductuniversal/', {
+					method: 'PUT',
+					headers: {
+						"Authorization": `Bearer ${token}`,
+						"Accept": 'application/json, text/plain, */*',
+						"Content-type": 'application/json'
+					},
+					body:JSON.stringify({product_name:product_intended})
+
+
+				})
+				.then(res => {
+				return res.json().then(data => ({ status: res.status, data: data }));
+				})
+				.then(({ status, data }) => {
+				if (status === 200) {
+					const output = document.getElementById('output1');
+					output.innerHTML = data.message;
+				} else {
+					const output = document.getElementById('output1');
+					output.innerHTML = data.detail;
+					setTimeout(() => output.remove(), 3000);
+				}
+				});
+			})
+
+
+
+		</script>
+</html>
+
