@@ -47,13 +47,14 @@ class User(Base):
     email = Column(String, nullable=False, unique=True)
     username = Column(String)
     password = Column(String)
-    role = Column(String, default="user")
+    role = Column(String)
 
 
 Base.metadata.create_all(bind=engine_users)
 JWT_SECRET = config("secret")
 JWT_ALGORITHM = config("algorithm")
 stripe_secret_key = config("stripeSecretKey")
+master_key = config("masterkey")
 
 
 stripe.api_key = stripe_secret_key
@@ -83,6 +84,13 @@ class UserCreate(BaseModel):
     email:str
     username:str
     password:str
+
+
+class AdminSignup(BaseModel):
+    email:str
+    username:str
+    password:str
+    secret_key:str
 
 def get_db_users():
     db = SessionLocal_users()
@@ -116,7 +124,7 @@ def user_create(user: UserCreate, db: Session = Depends(get_db_users), Authorize
     if not re.fullmatch(email_regex, user.email):
         raise HTTPException(status_code=400, detail="invalid email")
     hashed_pw = bcrypt.hashpw(user.password.encode('utf-8'), bcrypt.gensalt())
-    new_user = User(email = user.email, username = user.username, password = hashed_pw.decode('utf-8'))
+    new_user = User(email = user.email, username = user.username, password = hashed_pw.decode('utf-8'), role = "user")
 #we firstly encode the password given by the user in the create user, and store that encoded thing in a variable (hashed_pw), then when we come to add it to our db we decode it    
     db.add(new_user)
     db.commit()
@@ -126,6 +134,28 @@ def user_create(user: UserCreate, db: Session = Depends(get_db_users), Authorize
     access_token = Authorize.create_access_token(subject=user_id, user_claims={"email": email1, "role": role1, "id": user_id})
     refresh_token = Authorize.create_refresh_token(subject=user_id, user_claims={"email": email1, "role": role1, "id": user_id})
     return {"access_token": access_token, "refresh_token": refresh_token}
+
+
+@fastapi.post('/adminsignup/')
+def admin_signup(admin: AdminSignup, db: Session = Depends(get_db_users), Authorize: AuthJWT = Depends()):
+    if db.query(User).filter(User.email == admin.email).first():
+        raise HTTPException(status_code=400, detail="user already exists")
+    if not re.fullmatch(email_regex, admin.email):
+        raise HTTPException(status_code=400, detail="invalid email")
+    if admin.secret_key != master_key:
+        raise HTTPException(status_code=403, detail="wrong secret key")
+    hashed_pw = bcrypt.hashpw(admin.password.encode('utf-8'), bcrypt.gensalt())
+    new_user = User(email = admin.email, username = admin.username, password = hashed_pw.decode('utf-8'), role = "admin")
+    db.add(new_user)
+    db.commit()
+    email1 = admin.email
+    user_id = db.query(User.id).filter(User.email == admin.email).scalar()
+    role1 = db.query(User.role).filter(User.email == admin.email).scalar()
+    access_token = Authorize.create_access_token(subject=user_id, user_claims={"email": email1, "role": role1, "id": user_id})
+    refresh_token = Authorize.create_refresh_token(subject=user_id, user_claims={"email": email1, "role": role1, "id": user_id})
+    return {"access_token": access_token, "refresh_token": refresh_token}
+
+
 
 @fastapi.post('/signin/')
 def user_login(user: UserLogin, db: Session = Depends(get_db_users), Authorize: AuthJWT = Depends()):
@@ -180,6 +210,10 @@ class ProductResponse(BaseModel):
     price:int
 
 
+class RemoveProductUniversal(BaseModel):
+    product_name:str
+
+
 def user_role(Authorize:AuthJWT = Depends()):
     claims = Authorize.get_raw_jwt()
     role = claims.get("role")
@@ -213,6 +247,18 @@ def search_products(product_name: str, db: Session = Depends(get_db_products), A
         raise HTTPException(status_code=404, detail="product not found bitch")
     return product_found
 #the post and get methods for the products are secured routes, i ll now make the post method only accessible by admin (dk how but will get it
+
+@fastapi.put('/removeproductuniversal/')
+def remove_product_universal(product: RemoveProductUniversal, db_products: Session = Depends(get_db_products), Authorize: AuthJWT = Depends(), role: str = Depends(user_role)):
+    Authorize.jwt_required() 
+    if role != "admin":
+        raise HTTPException(status_code=403, detail="this page is for admins only!")
+    product_intended = db_products.query(Product).filter(Product.name == product.product_name).first()
+    if not product_intended:
+        raise HTTPException(status_code=404, detail="product not found bitch!")
+    db_products.delete(product_intended)
+    db_products.commit()
+    return {"message": "Product deleted boss!"}
 
 
 class Cart(Base):
