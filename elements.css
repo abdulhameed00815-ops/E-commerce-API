@@ -213,6 +213,7 @@ a{
 #nav-bar{
 	border:2px black solid;
 	background-color:#222222;
+	height:3500px;
 }
 
 #nav-bar a{
@@ -229,4 +230,12 @@ a{
 
 .not-top-panel{
 	display:flex;
+}
+
+#adminButton{
+	all:revert;
+	display:block;
+	margin:10px;
+	color:#FFC1CC;
+	font-family:Monospace;
 }
